@@ -24,10 +24,6 @@ Set up centralized configuration management for a microservices-based architectu
 2. **Import the project into your IDE.**
    - Open your favorite Java IDE (e.g., IntelliJ, Eclipse, or VS Code).
    - Import the `ConfigServer` project as a Maven project.
-   - Verify that Maven dependencies are downloaded correctly. If not, run:
-     ```bash
-     ./mvnw clean install
-     ```
 
 3. **Enable the Config Server in the application.**
    - Open the `ConfigServerApplication.java` file in the `src/main/java/com/microservices/configserver` folder.

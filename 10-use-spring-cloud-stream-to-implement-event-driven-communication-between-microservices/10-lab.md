@@ -7,95 +7,143 @@ Learn how to use Spring Cloud Stream to implement event-driven communication bet
 
 ## **Lab Steps**
 
-### **Part 1: Setting Up Kafka**
+### **Part 1: Installing and Running Kafka on Linux**
 
-1. **Download and install Apache Kafka.**
-   - Visit [https://kafka.apache.org/downloads](https://kafka.apache.org/downloads) and download the latest version.
-   - Extract the downloaded file to a directory of your choice.
-
-2. **Start Zookeeper.**
-   - Open a terminal, navigate to the Kafka `bin` directory, and run:
+1. **Update Linux packages.**
+   - Open a terminal and run:
      ```bash
-     bin/zookeeper-server-start.sh config/zookeeper.properties
+     sudo apt update && sudo apt upgrade -y
      ```
 
-3. **Start Kafka.**
-   - Open another terminal and run:
+2. **Install Java (required for Kafka).**
+   - Check if Java is already installed:
      ```bash
-     bin/kafka-server-start.sh config/server.properties
+     java -version
+     ```
+   - If Java is not installed, run:
+     ```bash
+     sudo apt install openjdk-17-jdk -y
+     ```
+   - Verify the installation:
+     ```bash
+     java -version
      ```
 
-4. **Create a Kafka topic.**
-   - Use the Kafka CLI to create a topic named `order-events`:
+3. **Download Kafka.**
+   - Visit [Kafka Downloads](https://kafka.apache.org/downloads) and copy the link for the latest stable version.
+   - Use `wget` to download Kafka:
      ```bash
-     bin/kafka-topics.sh --create --topic order-events --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+     wget https://downloads.apache.org/kafka/3.4.0/kafka_2.13-3.4.0.tgz
      ```
 
-5. **Verify the topic creation.**
-   - List all topics to confirm:
+4. **Extract the Kafka archive.**
+   - Run the following command to extract Kafka:
      ```bash
-     bin/kafka-topics.sh --list --bootstrap-server localhost:9092
+     tar -xvzf kafka_2.13-3.4.0.tgz
      ```
+   - Move the extracted folder to `/opt`:
+     ```bash
+     sudo mv kafka_2.13-3.4.0 /opt/kafka
+     ```
+
+5. **Set up environment variables.**
+   - Open the `.bashrc` file:
+     ```bash
+     nano ~/.bashrc
+     ```
+   - Add the following lines at the end:
+     ```bash
+     export KAFKA_HOME=/opt/kafka
+     export PATH=$PATH:$KAFKA_HOME/bin
+     ```
+   - Save and apply the changes:
+     ```bash
+     source ~/.bashrc
+     ```
+
+6. **Start Zookeeper.**
+   - Kafka requires Zookeeper to manage cluster information.
+   - Run the following command to start Zookeeper:
+     ```bash
+     zookeeper-server-start.sh /opt/kafka/config/zookeeper.properties
+     ```
+   - Keep this terminal open or run it in a new terminal with `screen` or `tmux`.
+
+7. **Start the Kafka broker.**
+   - Open another terminal and start Kafka:
+     ```bash
+     kafka-server-start.sh /opt/kafka/config/server.properties
+     ```
+
+8. **Verify that Kafka is running.**
+   - Use the following command to list the current Kafka topics:
+     ```bash
+     kafka-topics.sh --list --bootstrap-server localhost:9092
+     ```
+   - If no topics are listed, Kafka is running but has no topics yet.
+
+9. **Create a Kafka topic.**
+   - Run the following command to create a topic named `order-events`:
+     ```bash
+     kafka-topics.sh --create --topic order-events --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+     ```
+
+10. **Verify the topic creation.**
+    - List all Kafka topics:
+      ```bash
+      kafka-topics.sh --list --bootstrap-server localhost:9092
+      ```
+    - Ensure the `order-events` topic is listed.
 
 ---
 
 ### **Part 2: Setting Up the Producer Microservice**
 
-6. **Generate a new Spring Boot project for the `OrderService`.**
-   - Visit [https://start.spring.io/](https://start.spring.io/).
-   - Configure the project:
-     - **Group Id**: `com.microservices`
-     - **Artifact Id**: `order-service`
-     - **Dependencies**:
-       - Spring Web
-       - Spring Cloud Stream
-       - Spring Cloud Stream Kafka Binder
-   - Extract the downloaded zip file into a folder named `OrderService`.
+11. **Generate a new Spring Boot project for `OrderService`.**
+    - Visit [https://start.spring.io/](https://start.spring.io/).
+    - Configure the project:
+      - **Group Id**: `com.microservices`
+      - **Artifact Id**: `order-service`
+      - **Dependencies**:
+        - Spring Web
+        - Spring Cloud Stream
+        - Spring Cloud Stream Kafka Binder
+    - Extract the downloaded zip file into a folder named `OrderService`.
 
-7. **Import the project into your IDE.**
-   - Open your IDE and import the `OrderService` project as a Maven project.
+12. **Import the project into your IDE.**
+    - Open your IDE and import the `OrderService` project as a Maven project.
 
-8. **Configure Spring Cloud Stream for Kafka in `application.properties`.**
-   - Add the following properties:
-     ```properties
-     spring.application.name=order-service
-     spring.cloud.stream.kafka.binder.brokers=localhost:9092
-     spring.cloud.stream.bindings.output.destination=order-events
-     ```
+13. **Configure Spring Cloud Stream for Kafka in `application.properties`.**
+    - Add the following properties:
+      ```properties
+      spring.application.name=order-service
+      spring.cloud.stream.kafka.binder.brokers=localhost:9092
+      spring.cloud.stream.bindings.output.destination=order-events
+      ```
 
-9. **Create an event model.**
-   - Create a new class `OrderEvent.java` in the `src/main/java/com/microservices/orderservice` folder:
-     ```java
-     package com.microservices.orderservice;
+14. **Create an event model.**
+    - Create a new class `OrderEvent.java`:
+      ```java
+      package com.microservices.orderservice;
 
-     public class OrderEvent {
-         private String orderId;
-         private String status;
+      public class OrderEvent {
+          private String orderId;
+          private String status;
 
-         public OrderEvent(String orderId, String status) {
-             this.orderId = orderId;
-             this.status = status;
-         }
+          public OrderEvent(String orderId, String status) {
+              this.orderId = orderId;
+              this.status = status;
+          }
 
-         public String getOrderId() {
-             return orderId;
-         }
+          // Getters and setters
+          public String getOrderId() { return orderId; }
+          public void setOrderId(String orderId) { this.orderId = orderId; }
+          public String getStatus() { return status; }
+          public void setStatus(String status) { this.status = status; }
+      }
+      ```
 
-         public void setOrderId(String orderId) {
-             this.orderId = orderId;
-         }
-
-         public String getStatus() {
-             return status;
-         }
-
-         public void setStatus(String status) {
-             this.status = status;
-         }
-     }
-     ```
-
-10. **Create a message producer.**
+15. **Create a message producer.**
     - Create a new file `OrderProducer.java`:
       ```java
       package com.microservices.orderservice;
@@ -118,7 +166,7 @@ Learn how to use Spring Cloud Stream to implement event-driven communication bet
       }
       ```
 
-11. **Add a REST controller to trigger events.**
+16. **Add a REST controller to trigger events.**
     - Create a new file `OrderController.java`:
       ```java
       package com.microservices.orderservice;
@@ -144,13 +192,13 @@ Learn how to use Spring Cloud Stream to implement event-driven communication bet
       }
       ```
 
-12. **Run the `OrderService` application.**
+17. **Run the `OrderService` application.**
     - Start the application using:
       ```bash
       ./mvnw spring-boot:run
       ```
 
-13. **Test the event publishing.**
+18. **Test the event publishing.**
     - Use Postman to send a POST request to:
       ```
       http://localhost:8080/orders
@@ -167,7 +215,7 @@ Learn how to use Spring Cloud Stream to implement event-driven communication bet
 
 ### **Part 3: Setting Up the Consumer Microservice**
 
-14. **Generate a new Spring Boot project for `NotificationService`.**
+19. **Generate a new Spring Boot project for `NotificationService`.**
     - Visit [https://start.spring.io/](https://start.spring.io/).
     - Configure the project:
       - **Artifact Id**: `notification-service`
@@ -175,12 +223,12 @@ Learn how to use Spring Cloud Stream to implement event-driven communication bet
         - Spring Web
         - Spring Cloud Stream
         - Spring Cloud Stream Kafka Binder
-    - Extract the downloaded zip file into a folder named `NotificationService`.
+    - Extract the zip file into a folder named `NotificationService`.
 
-15. **Import the project into your IDE.**
+20. **Import the project into your IDE.**
     - Open your IDE and import the `NotificationService` project as a Maven project.
 
-16. **Configure Spring Cloud Stream for Kafka in `application.properties`.**
+21. **Configure Spring Cloud Stream for Kafka in `application.properties`.**
     - Add the following properties:
       ```properties
       spring.application.name=notification-service
@@ -188,7 +236,7 @@ Learn how to use Spring Cloud Stream to implement event-driven communication bet
       spring.cloud.stream.bindings.input.destination=order-events
       ```
 
-17. **Create a message consumer.**
+22. **Create a message consumer.**
     - Create a new file `OrderEventConsumer.java`:
       ```java
       package com.microservices.notificationservice;
@@ -209,30 +257,22 @@ Learn how to use Spring Cloud Stream to implement event-driven communication bet
       }
       ```
 
-18. **Create an event model for the consumer.**
+23. **Create an event model for the consumer.**
     - Create a class `OrderEvent.java` (similar to the producer’s `OrderEvent`).
 
-19. **Run the `NotificationService` application.**
-    - Start the `NotificationService` using:
+24. **Run the `NotificationService` application.**
+    - Start the application using:
       ```bash
       ./mvnw spring-boot:run
       ```
 
----
-
-### **Part 4: Testing the Event-Driven Communication**
-
-20. **Test the event flow.**
-    - Send a POST request to `OrderService` as described in step 13.
-    - Verify that the `NotificationService` logs the event details in the console.
+25. **Test the event-driven communication.**
+    - Send a POST request to `OrderService` and verify that `NotificationService` logs the event.
 
 ---
 
-### **Optional Exercises (20 mins)**
+### **Optional Exercises**
 
-1. **Add additional fields to the `OrderEvent` model.**
-   - Extend the event with additional fields (e.g., `orderAmount`) and test the flow.
-
-2. **Integrate error handling in the consumer.**
-   - Implement a dead-letter topic to handle failed message processing.
+1. Add a dead-letter topic for failed messages.
+2. Extend the `OrderEvent` model with additional fields (e.g., `timestamp`) and test end-to-end.
 

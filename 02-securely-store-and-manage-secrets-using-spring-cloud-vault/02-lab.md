@@ -7,40 +7,64 @@ Learn how to securely store and dynamically reload secrets using Spring Cloud Va
 
 ## **Lab Steps**
 
-### **Part 1: Setting Up HashiCorp Vault**
+### **Part 1: Installing and Running HashiCorp Vault on Linux**
 
-1. **Download and install HashiCorp Vault.**
-   - Visit [https://www.vaultproject.io/downloads](https://www.vaultproject.io/downloads).
-   - Download the appropriate binary for your operating system, extract it, and add it to your system's PATH.
+1. **Update Linux packages.**
+   - Open a terminal and run:
+     ```bash
+     sudo apt update && sudo apt upgrade -y
+     ```
 
-2. **Start the Vault development server.**
-   - Run the following command in your terminal:
+2. **Download the Vault binary.**
+   - Visit [https://www.vaultproject.io/downloads](https://www.vaultproject.io/downloads) and copy the link for the latest Vault binary for Linux.
+   - Use `wget` to download Vault:
+     ```bash
+     wget https://releases.hashicorp.com/vault/1.14.1/vault_1.14.1_linux_amd64.zip
+     ```
+
+3. **Install Vault.**
+   - Unzip the downloaded file:
+     ```bash
+     unzip vault_1.14.1_linux_amd64.zip
+     ```
+   - Move the `vault` binary to `/usr/local/bin`:
+     ```bash
+     sudo mv vault /usr/local/bin/
+     ```
+
+4. **Verify the installation.**
+   - Check the Vault version to confirm installation:
+     ```bash
+     vault --version
+     ```
+
+5. **Start Vault in development mode.**
+   - Run the following command:
      ```bash
      vault server -dev
      ```
-   - Vault will start in development mode on `http://127.0.0.1:8200`.
-   - Note the `Root Token` displayed in the logs, e.g., `hvs.XXXX`.
+   - Vault will start in development mode and display a `Root Token`. Copy the token, as you will need it for configuration.
 
-3. **Set up Vault environment variables.**
-   - Export the following environment variables to configure the Vault CLI:
+6. **Set Vault environment variables.**
+   - Open a new terminal and set the Vault environment variables:
      ```bash
      export VAULT_ADDR='http://127.0.0.1:8200'
-     export VAULT_TOKEN='hvs.XXXX'  # Replace with your actual Root Token
+     export VAULT_TOKEN='<your-root-token>'
      ```
 
-4. **Enable the KV secrets engine in Vault.**
+7. **Enable the KV secrets engine in Vault.**
    - Run the following command to enable the key-value secrets engine at the `secret/` path:
      ```bash
      vault secrets enable -path=secret kv
      ```
 
-5. **Add secrets to Vault.**
+8. **Add secrets to Vault.**
    - Store a key-value pair (`username` and `password`) in Vault for the `user-service`:
      ```bash
      vault kv put secret/user-service username=root password=root123
      ```
 
-6. **Verify the stored secret.**
+9. **Verify the stored secret.**
    - Fetch the secret using the following command:
      ```bash
      vault kv get secret/user-service
@@ -51,36 +75,36 @@ Learn how to securely store and dynamically reload secrets using Spring Cloud Va
 
 ### **Part 2: Setting Up the Spring Boot Application**
 
-7. **Generate a new Spring Boot project using Spring Initializr.**
-   - Visit [https://start.spring.io/](https://start.spring.io/).
-   - Configure the project:
-     - **Group Id**: `com.microservices`
-     - **Artifact Id**: `user-service`
-     - **Name**: `UserService`
-     - **Dependencies**:
-       - Spring Web
-       - Spring Cloud Vault Config
-       - Spring Boot Actuator
-   - Click **Generate** to download the project zip file.
-   - Extract the downloaded zip file into a folder named `UserService`.
+10. **Generate a new Spring Boot project using Spring Initializr.**
+    - Visit [https://start.spring.io/](https://start.spring.io/).
+    - Configure the project:
+      - **Group Id**: `com.microservices`
+      - **Artifact Id**: `user-service`
+      - **Name**: `UserService`
+      - **Dependencies**:
+        - Spring Web
+        - Spring Cloud Vault Config
+        - Spring Boot Actuator
+    - Click **Generate** to download the project zip file.
+    - Extract the downloaded zip file into a folder named `UserService`.
 
-8. **Import the project into your IDE.**
-   - Open your favorite IDE (e.g., IntelliJ, Eclipse, or VS Code).
-   - Import the `UserService` project as a Maven project.
-   - Ensure that all dependencies are downloaded successfully.
+11. **Import the project into your IDE.**
+    - Open your favorite IDE (e.g., IntelliJ, Eclipse, or VS Code).
+    - Import the `UserService` project as a Maven project.
+    - Ensure that all dependencies are downloaded successfully.
 
-9. **Add Spring Cloud Vault configurations.**
-   - Open the `src/main/resources/application.properties` file and add the following:
-     ```properties
-     spring.application.name=user-service
-     spring.cloud.vault.uri=http://127.0.0.1:8200
-     spring.cloud.vault.token=hvs.XXXX  # Replace with your actual Root Token
-     spring.cloud.vault.kv.enabled=true
-     spring.cloud.vault.kv.backend=secret
-     spring.cloud.vault.kv.application-name=user-service
-     ```
+12. **Add Spring Cloud Vault configurations.**
+    - Open the `src/main/resources/application.properties` file and add the following:
+      ```properties
+      spring.application.name=user-service
+      spring.cloud.vault.uri=http://127.0.0.1:8200
+      spring.cloud.vault.token=<your-root-token>
+      spring.cloud.vault.kv.enabled=true
+      spring.cloud.vault.kv.backend=secret
+      spring.cloud.vault.kv.application-name=user-service
+      ```
 
-10. **Create a configuration class to map secrets.**
+13. **Create a configuration class to map secrets.**
     - Create a new file `VaultConfig.java` in the `src/main/java/com/microservices/userservice` folder:
       ```java
       package com.microservices.userservice;
@@ -113,7 +137,7 @@ Learn how to securely store and dynamically reload secrets using Spring Cloud Va
       }
       ```
 
-11. **Inject the VaultConfig class into a REST controller.**
+14. **Inject the VaultConfig class into a REST controller.**
     - Create a new file `VaultController.java` in the `src/main/java/com/microservices/userservice` folder:
       ```java
       package com.microservices.userservice;
@@ -135,13 +159,13 @@ Learn how to securely store and dynamically reload secrets using Spring Cloud Va
       }
       ```
 
-12. **Run the application.**
+15. **Run the application.**
     - Start the `UserService` application using:
       ```bash
       ./mvnw spring-boot:run
       ```
 
-13. **Test the `/secrets` endpoint.**
+16. **Test the `/secrets` endpoint.**
     - Open a browser or use Postman to access:
       ```
       http://localhost:8080/secrets
@@ -152,7 +176,7 @@ Learn how to securely store and dynamically reload secrets using Spring Cloud Va
 
 ### **Part 3: Adding Dynamic Updates for Secrets**
 
-14. **Add Spring Boot Actuator for dynamic refresh.**
+17. **Add Spring Boot Actuator for dynamic refresh.**
     - Open the `pom.xml` file and add:
       ```xml
       <dependency>
@@ -161,47 +185,30 @@ Learn how to securely store and dynamically reload secrets using Spring Cloud Va
       </dependency>
       ```
 
-15. **Expose the refresh endpoint in Actuator.**
+18. **Expose the refresh endpoint in Actuator.**
     - Add the following to `application.properties`:
       ```properties
       management.endpoints.web.exposure.include=refresh
       ```
 
-16. **Modify secrets in Vault.**
+19. **Modify secrets in Vault.**
     - Update the secret stored in Vault:
       ```bash
       vault kv put secret/user-service username=admin password=admin123
       ```
 
-17. **Trigger a refresh of the application’s configuration.**
+20. **Trigger a refresh of the application’s configuration.**
     - Use the following `curl` command to refresh the application’s configuration without restarting:
       ```bash
       curl -X POST http://localhost:8080/actuator/refresh
       ```
 
-18. **Verify the updated secrets.**
+21. **Verify the updated secrets.**
     - Access the `/secrets` endpoint again:
       ```
       http://localhost:8080/secrets
       ```
     - Confirm that the updated username (`admin`) and password (`admin123`) are displayed.
-
----
-
-### **Part 4: Testing Environment Profiles**
-
-19. **Set up environment-specific secrets in Vault.**
-    - Store secrets for the `dev` environment:
-      ```bash
-      vault kv put secret/user-service/dev username=devuser password=devpass
-      ```
-
-20. **Modify the application to use the `dev` profile.**
-    - Add the following to `application.properties`:
-      ```properties
-      spring.profiles.active=dev
-      ```
-    - Restart the application and verify that secrets from `secret/user-service/dev` are used.
 
 ---
 
@@ -217,5 +224,6 @@ Learn how to securely store and dynamically reload secrets using Spring Cloud Va
        ```
    - Test the application to ensure it works seamlessly with database connections using Vault-managed credentials.
 
-2. **Test Vault with production secrets.**
+2. **Test Vault with environment profiles.**
    - Add secrets for a `prod` environment and switch between profiles (`dev`, `prod`) dynamically.
+

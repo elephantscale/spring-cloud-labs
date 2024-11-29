@@ -7,79 +7,60 @@ Set up Apache Zookeeper as a configuration and synchronization server. Learn how
 
 ## **Lab Steps**
 
-### **Part 1: Installing and Running Zookeeper on Linux**
+### **Part 1: Installing and Running Zookeeper on Windows**
 
-1. **Update Linux packages.**
-   - Open a terminal and run:
-     ```bash
-     sudo apt update && sudo apt upgrade -y
-     ```
+1. **Download Zookeeper.**
+   - Visit [https://zookeeper.apache.org/releases.html](https://zookeeper.apache.org/releases.html) and download the latest stable release (e.g., `zookeeper-3.8.2`).
 
-2. **Download Zookeeper.**
-   - Visit [https://zookeeper.apache.org/releases.html](https://zookeeper.apache.org/releases.html) and copy the link for the latest stable release.
-   - Use `wget` to download Zookeeper:
-     ```bash
-     wget https://downloads.apache.org/zookeeper/zookeeper-3.8.2/apache-zookeeper-3.8.2-bin.tar.gz
-     ```
+2. **Extract the downloaded archive.**
+   - Extract the downloaded file (e.g., `apache-zookeeper-3.8.2-bin.tar.gz`) to a folder such as `C:\Zookeeper`.
 
-3. **Extract the downloaded archive.**
-   - Run the following command to extract the Zookeeper archive:
-     ```bash
-     tar -xvzf apache-zookeeper-3.8.2-bin.tar.gz
+3. **Set up the Zookeeper configuration.**
+   - Navigate to the `conf` folder:
      ```
-   - Move the extracted folder to `/opt`:
-     ```bash
-     sudo mv apache-zookeeper-3.8.2-bin /opt/zookeeper
+     cd C:\Zookeeper\conf
+     ```
+   - Copy `zoo_sample.cfg` and rename it to `zoo.cfg`:
+     ```
+     copy zoo_sample.cfg zoo.cfg
      ```
 
-4. **Set up Zookeeper configuration.**
-   - Navigate to the `conf` directory:
-     ```bash
-     cd /opt/zookeeper/conf
-     ```
-   - Rename `zoo_sample.cfg` to `zoo.cfg`:
-     ```bash
-     mv zoo_sample.cfg zoo.cfg
-     ```
-
-5. **Update the configuration file.**
-   - Edit the `zoo.cfg` file and ensure the `dataDir` path is set:
+4. **Update the configuration file.**
+   - Open `zoo.cfg` in a text editor (e.g., Notepad or VS Code).
+   - Ensure the `dataDir` is set to a valid directory, such as:
      ```properties
-     dataDir=/opt/zookeeper/data
+     dataDir=C:/Zookeeper/data
      ```
    - Create the `data` directory:
-     ```bash
-     mkdir /opt/zookeeper/data
+     ```
+     mkdir C:\Zookeeper\data
      ```
 
-6. **Start the Zookeeper server.**
-   - Navigate to the Zookeeper home directory:
-     ```bash
-     cd /opt/zookeeper
+5. **Start the Zookeeper server.**
+   - Open a Command Prompt, navigate to the Zookeeper folder, and run:
      ```
-   - Run the following command to start Zookeeper:
-     ```bash
-     bin/zkServer.sh start
+     bin\zkServer.cmd
      ```
+   - Zookeeper will start, and the server logs will appear in the terminal.
 
-7. **Verify Zookeeper is running.**
+6. **Verify Zookeeper is running.**
    - Check the server's status using:
-     ```bash
-     bin/zkServer.sh status
+     ```
+     bin\zkServer.cmd status
      ```
    - Confirm that the server is running and in standalone mode.
 
-8. **Test Zookeeper using the CLI.**
-   - Open a Zookeeper shell:
-     ```bash
-     bin/zkCli.sh
+7. **Test Zookeeper using the CLI.**
+   - Open a Zookeeper shell by running:
+     ```
+     bin\zkCli.cmd
      ```
    - Create a test node:
-     ```bash
+     ```
      create /config "Hello Zookeeper"
      ```
    - Retrieve the node value:
-     ```bash
+     ```
      get /config
      ```
    - Confirm that the value `Hello Zookeeper` is displayed.
@@ -88,7 +69,7 @@ Set up Apache Zookeeper as a configuration and synchronization server. Learn how
 
 ### **Part 2: Setting Up the Spring Boot Application**
 
-9. **Generate a new Spring Boot project using Spring Initializr.**
+8. **Generate a new Spring Boot project using Spring Initializr.**
    - Visit [https://start.spring.io/](https://start.spring.io/).
    - Configure the project:
      - **Group Id**: `com.microservices`
@@ -101,10 +82,10 @@ Set up Apache Zookeeper as a configuration and synchronization server. Learn how
    - Click **Generate** to download the project zip file.
    - Extract the downloaded zip file into a folder named `ZookeeperService`.
 
-10. **Import the project into your IDE.**
+9. **Import the project into your IDE.**
     - Open your IDE and import the `ZookeeperService` project as a Maven project.
 
-11. **Enable Zookeeper Discovery.**
+10. **Enable Zookeeper Discovery.**
     - Open the `ZookeeperServiceApplication.java` file in the `src/main/java/com/microservices/zookeeperservice` folder.
     - Add the `@EnableDiscoveryClient` annotation:
       ```java
@@ -121,7 +102,7 @@ Set up Apache Zookeeper as a configuration and synchronization server. Learn how
       }
       ```
 
-12. **Configure Zookeeper in `application.properties`.**
+11. **Configure Zookeeper in `application.properties`.**
     - Add the following configurations:
       ```properties
       spring.application.name=zookeeper-service
@@ -129,7 +110,7 @@ Set up Apache Zookeeper as a configuration and synchronization server. Learn how
       server.port=8083
       ```
 
-13. **Add a REST endpoint to the service.**
+12. **Add a REST endpoint to the service.**
     - Create a new file `ZookeeperController.java` in the `src/main/java/com/microservices/zookeeperservice` folder:
       ```java
       package com.microservices.zookeeperservice;
@@ -147,15 +128,15 @@ Set up Apache Zookeeper as a configuration and synchronization server. Learn how
       }
       ```
 
-14. **Run the `ZookeeperService` application.**
+13. **Run the `ZookeeperService` application.**
     - Start the application using:
-      ```bash
-      ./mvnw spring-boot:run
+      ```
+      mvnw spring-boot:run
       ```
 
-15. **Verify service registration in Zookeeper.**
-    - Open the Zookeeper CLI (`bin/zkCli.sh`) and run:
-      ```bash
+14. **Verify service registration in Zookeeper.**
+    - Open the Zookeeper CLI (`bin\zkCli.cmd`) and run:
+      ```
       ls /services
       ```
     - Confirm that `zookeeper-service` is listed.
@@ -164,15 +145,15 @@ Set up Apache Zookeeper as a configuration and synchronization server. Learn how
 
 ### **Part 3: Adding Another Service**
 
-16. **Generate a new Spring Boot project for the `ProductService`.**
-    - Repeat steps 9 and 10, but use the following configuration:
+15. **Generate a new Spring Boot project for the `ProductService`.**
+    - Repeat steps 8 and 9, but use the following configuration:
       - **Artifact Id**: `product-service`
-      - **Name**: `ProductService`
+      - **Name**: `ProductService`.
 
-17. **Enable Zookeeper Discovery for `ProductService`.**
+16. **Enable Zookeeper Discovery for `ProductService`.**
     - Add the `@EnableDiscoveryClient` annotation in the `ProductServiceApplication.java` file.
 
-18. **Configure Zookeeper for `ProductService`.**
+17. **Configure Zookeeper for `ProductService`.**
     - Add the following to the `application.properties` file:
       ```properties
       spring.application.name=product-service
@@ -180,7 +161,7 @@ Set up Apache Zookeeper as a configuration and synchronization server. Learn how
       server.port=8084
       ```
 
-19. **Add a REST endpoint for the `ProductService`.**
+18. **Add a REST endpoint for the `ProductService`.**
     - Create a new file `ProductController.java` in the `src/main/java/com/microservices/productservice` folder:
       ```java
       package com.microservices.productservice;
@@ -198,15 +179,15 @@ Set up Apache Zookeeper as a configuration and synchronization server. Learn how
       }
       ```
 
-20. **Run the `ProductService` application.**
+19. **Run the `ProductService` application.**
     - Start the application using:
-      ```bash
-      ./mvnw spring-boot:run
+      ```
+      mvnw spring-boot:run
       ```
 
-21. **Verify service registration in Zookeeper.**
+20. **Verify service registration in Zookeeper.**
     - Open the Zookeeper CLI and run:
-      ```bash
+      ```
       ls /services
       ```
     - Confirm that both `zookeeper-service` and `product-service` are listed.
@@ -215,13 +196,13 @@ Set up Apache Zookeeper as a configuration and synchronization server. Learn how
 
 ### **Part 4: Testing Configuration Management**
 
-22. **Update Zookeeper’s KV data.**
+21. **Update Zookeeper’s KV data.**
     - In the Zookeeper CLI, update the value of the `/config` node:
-      ```bash
+      ```
       set /config "Updated Configuration Value"
       ```
 
-23. **Retrieve the updated configuration in `ZookeeperService`.**
+22. **Retrieve the updated configuration in `ZookeeperService`.**
     - Modify the `ZookeeperController` to dynamically fetch the value:
       ```java
       import org.springframework.beans.factory.annotation.Value;
@@ -239,7 +220,7 @@ Set up Apache Zookeeper as a configuration and synchronization server. Learn how
       }
       ```
 
-24. **Test the `/config` endpoint.**
+23. **Test the `/config` endpoint.**
     - Open a browser or use Postman to access:
       ```
       http://localhost:8083/config
@@ -255,4 +236,3 @@ Set up Apache Zookeeper as a configuration and synchronization server. Learn how
 
 2. **Add environment-specific configurations.**
    - Store configurations for multiple environments (`/config/dev` and `/config/prod`) and test retrieval based on active profiles.
-

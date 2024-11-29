@@ -7,34 +7,29 @@ Learn how to integrate Spring Cloud Sleuth with Zipkin to collect and visualize 
 
 ## **Lab Steps**
 
-### **Part 1: Installing and Running Zipkin on Linux**
+### **Part 1: Installing and Running Zipkin on Windows**
 
 1. **Install Java (required for running Zipkin).**
-   - Check if Java is installed:
-     ```bash
+   - Open a Command Prompt and check if Java is installed:
+     ```cmd
      java -version
      ```
-   - If Java is not installed, run:
-     ```bash
-     sudo apt update
-     sudo apt install openjdk-17-jdk -y
-     ```
+   - If Java is not installed:
+     - Download JDK 17 from [https://adoptium.net/](https://adoptium.net/).
+     - Install it by following the setup instructions.
    - Verify the installation:
-     ```bash
+     ```cmd
      java -version
      ```
 
 2. **Download the Zipkin Server.**
-   - Visit [https://zipkin.io/pages/quickstart](https://zipkin.io/pages/quickstart) and copy the link to the latest JAR file.
-   - Download the JAR file using `wget`:
-     ```bash
-     wget -O zipkin.jar https://repo1.maven.org/maven2/io/zipkin/java/zipkin-server/2.23.16/zipkin-server-2.23.16-exec.jar
-     ```
+   - Visit [https://zipkin.io/pages/quickstart](https://zipkin.io/pages/quickstart) and download the latest Zipkin JAR file.
+   - Save the file (e.g., `zipkin-server-2.23.16-exec.jar`) to a folder, such as `C:\Zipkin`.
 
 3. **Run the Zipkin server.**
-   - Start Zipkin using the downloaded JAR file:
-     ```bash
-     java -jar zipkin.jar
+   - Open a Command Prompt, navigate to the folder containing the JAR file, and start Zipkin:
+     ```cmd
+     java -jar zipkin-server-2.23.16-exec.jar
      ```
    - Zipkin will start on port `9411`.
 
@@ -93,8 +88,8 @@ Learn how to integrate Spring Cloud Sleuth with Zipkin to collect and visualize 
 
 9. **Run the `UserService`.**
    - Start the application using:
-     ```bash
-     ./mvnw spring-boot:run
+     ```cmd
+     mvnw spring-boot:run
      ```
 
 10. **Test the `/users` endpoint.**
@@ -181,8 +176,8 @@ Learn how to integrate Spring Cloud Sleuth with Zipkin to collect and visualize 
 
 16. **Run the `OrderService`.**
     - Start the application using:
-      ```bash
-      ./mvnw spring-boot:run
+      ```cmd
+      mvnw spring-boot:run
       ```
 
 17. **Test the `/orders` endpoint.**
@@ -218,4 +213,3 @@ Learn how to integrate Spring Cloud Sleuth with Zipkin to collect and visualize 
 
 2. **Simulate a service failure.**
    - Stop `UserService` and observe how Zipkin visualizes the error in the trace.
-

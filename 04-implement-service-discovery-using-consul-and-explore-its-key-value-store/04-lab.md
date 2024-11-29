@@ -7,52 +7,40 @@ Set up a Consul server to enable dynamic service discovery and utilize its key-v
 
 ## **Lab Steps**
 
-### **Part 1: Installing and Running Consul on Linux**
+### **Part 1: Installing and Running Consul on Windows**
 
-1. **Update Linux packages.**
-   - Open a terminal and run:
-     ```bash
-     sudo apt update && sudo apt upgrade -y
-     ```
+1. **Download the Consul binary.**
+   - Visit [https://developer.hashicorp.com/consul/downloads](https://developer.hashicorp.com/consul/downloads) and download the latest Consul binary for Windows.
 
-2. **Download the Consul binary.**
-   - Visit [https://developer.hashicorp.com/consul/downloads](https://developer.hashicorp.com/consul/downloads) and copy the link for the latest Consul binary for Linux.
-   - Use `wget` to download Consul:
-     ```bash
-     wget https://releases.hashicorp.com/consul/1.15.1/consul_1.15.1_linux_amd64.zip
-     ```
+2. **Extract the Consul binary.**
+   - Unzip the downloaded file (e.g., `consul_1.15.1_windows_amd64.zip`) to a folder, such as `C:\HashiCorp\Consul`.
 
-3. **Install Consul.**
-   - Unzip the downloaded file:
-     ```bash
-     unzip consul_1.15.1_linux_amd64.zip
-     ```
-   - Move the `consul` binary to `/usr/local/bin`:
-     ```bash
-     sudo mv consul /usr/local/bin/
-     ```
-
-4. **Verify the installation.**
-   - Check the Consul version to confirm installation:
-     ```bash
+3. **Add Consul to the system PATH.**
+   - Open **Environment Variables**:
+     1. Press `Windows + S` and search for **Environment Variables**.
+     2. Click on **Edit the system environment variables**.
+     3. Under **System Variables**, select **Path** and click **Edit**.
+     4. Add the folder path where the `consul.exe` is located (e.g., `C:\HashiCorp\Consul`).
+   - Verify the setup by opening a Command Prompt and running:
+     ```cmd
      consul --version
      ```
 
-5. **Start Consul in development mode.**
-   - Run the following command to start Consul:
-     ```bash
+4. **Start Consul in development mode.**
+   - Open a Command Prompt and run:
+     ```cmd
      consul agent -dev
      ```
    - Consul will start in development mode and be accessible at `http://127.0.0.1:8500`.
 
-6. **Access the Consul UI.**
+5. **Access the Consul UI.**
    - Open a browser and navigate to:
      ```
-     http://localhost:8500
+     http://127.0.0.1:8500
      ```
    - Verify that the Consul dashboard is displayed, with no registered services yet.
 
-7. **Add a key-value pair to the KV store.**
+6. **Add a key-value pair to the KV store.**
    - Navigate to the **Key/Value** tab in the Consul UI.
    - Click **Create** and add:
      - Key: `config/sample-service`
@@ -64,9 +52,9 @@ Set up a Consul server to enable dynamic service discovery and utilize its key-v
        ```
    - Save the key-value pair.
 
-8. **Verify KV store retrieval using the CLI.**
-   - Use the following command to fetch the KV pair:
-     ```bash
+7. **Verify KV store retrieval using the CLI.**
+   - Open a Command Prompt and run the following command:
+     ```cmd
      consul kv get config/sample-service
      ```
    - Confirm that the output matches the value you added in the UI.
@@ -75,7 +63,7 @@ Set up a Consul server to enable dynamic service discovery and utilize its key-v
 
 ### **Part 2: Setting Up the Consul Server in Spring Boot**
 
-9. **Generate a new Spring Boot project using Spring Initializr.**
+8. **Generate a new Spring Boot project using Spring Initializr.**
    - Visit [https://start.spring.io/](https://start.spring.io/).
    - Configure the project:
      - **Group Id**: `com.microservices`
@@ -88,10 +76,10 @@ Set up a Consul server to enable dynamic service discovery and utilize its key-v
    - Click **Generate** to download the project zip file.
    - Extract the downloaded zip file into a folder named `ConsulServer`.
 
-10. **Import the project into your IDE.**
+9. **Import the project into your IDE.**
     - Open your IDE and import the `ConsulServer` project as a Maven project.
 
-11. **Enable Consul Discovery.**
+10. **Enable Consul Discovery.**
     - Open the `ConsulServerApplication.java` file in the `src/main/java/com/microservices/consulserver` folder.
     - Add the `@EnableDiscoveryClient` annotation:
       ```java
@@ -108,7 +96,7 @@ Set up a Consul server to enable dynamic service discovery and utilize its key-v
       }
       ```
 
-12. **Configure Consul in `application.properties`.**
+11. **Configure Consul in `application.properties`.**
     - Add the following properties in `src/main/resources/application.properties`:
       ```properties
       spring.application.name=consul-server
@@ -117,7 +105,7 @@ Set up a Consul server to enable dynamic service discovery and utilize its key-v
       server.port=8081
       ```
 
-13. **Add a sample REST endpoint.**
+12. **Add a sample REST endpoint.**
     - Create a new file `ConsulController.java` in the `src/main/java/com/microservices/consulserver` folder:
       ```java
       package com.microservices.consulserver;
@@ -135,29 +123,29 @@ Set up a Consul server to enable dynamic service discovery and utilize its key-v
       }
       ```
 
-14. **Run the `ConsulServer` application.**
+13. **Run the `ConsulServer` application.**
     - Start the application using:
-      ```bash
-      ./mvnw spring-boot:run
+      ```cmd
+      mvnw spring-boot:run
       ```
 
-15. **Verify service registration in Consul.**
-    - Open the Consul UI at `http://localhost:8500`.
+14. **Verify service registration in Consul.**
+    - Open the Consul UI at `http://127.0.0.1:8500`.
     - Navigate to the **Services** tab and confirm that `consul-server` is listed.
 
 ---
 
 ### **Part 3: Adding Another Service**
 
-16. **Generate a new Spring Boot project for the `UserService`.**
-    - Repeat steps 9 and 10, but use the following configuration:
+15. **Generate a new Spring Boot project for the `UserService`.**
+    - Repeat steps 8 and 9, but use the following configuration:
       - **Artifact Id**: `user-service`
-      - **Name**: `UserService`
+      - **Name**: `UserService`.
 
-17. **Enable Consul Discovery for `UserService`.**
+16. **Enable Consul Discovery for `UserService`.**
     - Add the `@EnableDiscoveryClient` annotation in the `UserServiceApplication.java` file.
 
-18. **Configure Consul for `UserService`.**
+17. **Configure Consul for `UserService`.**
     - Add the following to the `application.properties` file:
       ```properties
       spring.application.name=user-service
@@ -166,7 +154,7 @@ Set up a Consul server to enable dynamic service discovery and utilize its key-v
       server.port=8082
       ```
 
-19. **Add a REST endpoint for the `UserService`.**
+18. **Add a REST endpoint for the `UserService`.**
     - Create a new file `UserController.java` in the `src/main/java/com/microservices/userservice` folder:
       ```java
       package com.microservices.userservice;
@@ -184,20 +172,20 @@ Set up a Consul server to enable dynamic service discovery and utilize its key-v
       }
       ```
 
-20. **Run the `UserService` application.**
+19. **Run the `UserService` application.**
     - Start the application using:
-      ```bash
-      ./mvnw spring-boot:run
+      ```cmd
+      mvnw spring-boot:run
       ```
 
-21. **Verify service registration in Consul.**
+20. **Verify service registration in Consul.**
     - Open the Consul UI and confirm that both `consul-server` and `user-service` are listed.
 
 ---
 
 ### **Part 4: Exploring KV Store in Spring Boot**
 
-22. **Fetch KV store values dynamically in the `ConsulServer`.**
+21. **Fetch KV store values dynamically in the `ConsulServer`.**
     - Update `ConsulController` to retrieve values from the KV store:
       ```java
       package com.microservices.consulserver;
@@ -219,7 +207,7 @@ Set up a Consul server to enable dynamic service discovery and utilize its key-v
       }
       ```
 
-23. **Test KV store retrieval.**
+22. **Test KV store retrieval.**
     - Open a browser or use Postman to access:
       ```
       http://localhost:8081/greeting

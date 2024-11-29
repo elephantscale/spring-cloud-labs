@@ -1,96 +1,67 @@
 # **Lab 14: Set Up a CI Pipeline with Jenkins for Automated Testing and Deployment of Microservices**
 
 ## **Objective**
-Learn how to install and configure Jenkins on Linux to automate the build, testing, and deployment process for Spring Boot microservices. Create a Jenkins pipeline that builds and deploys two microservices: `UserService` and `OrderService`.
+Learn how to install and configure Jenkins on Windows to automate the build, testing, and deployment process for Spring Boot microservices. Create a Jenkins pipeline that builds and deploys two microservices: `UserService` and `OrderService`.
 
 ---
 
 ## **Lab Steps**
 
-### **Part 1: Installing Jenkins on Linux**
+### **Part 1: Installing Jenkins on Windows**
 
-1. **Update system packages.**
-   - Open a terminal and run:
-     ```bash
-     sudo apt update && sudo apt upgrade -y
-     ```
-
-2. **Install Java (required for Jenkins).**
-   - Verify if Java is installed:
-     ```bash
+1. **Install Java (required for Jenkins).**
+   - Open a Command Prompt and check if Java is installed:
+     ```cmd
      java -version
      ```
-   - If Java is not installed, install OpenJDK:
-     ```bash
-     sudo apt install openjdk-17-jdk -y
-     ```
+   - If Java is not installed:
+     - Download JDK 17 from [https://adoptium.net/](https://adoptium.net/).
+     - Install it by following the setup instructions.
    - Verify the installation:
-     ```bash
+     ```cmd
      java -version
      ```
 
-3. **Add the Jenkins repository key.**
-   - Run the following commands to add the Jenkins repository and key:
-     ```bash
-     curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee \
-     /usr/share/keyrings/jenkins-keyring.asc > /dev/null
-     echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
-     https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
-     /etc/apt/sources.list.d/jenkins.list > /dev/null
-     ```
+2. **Download Jenkins.**
+   - Visit [https://www.jenkins.io/download/](https://www.jenkins.io/download/) and download the **Windows Installer**.
 
-4. **Install Jenkins.**
-   - Update the package list:
-     ```bash
-     sudo apt update
-     ```
-   - Install Jenkins:
-     ```bash
-     sudo apt install jenkins -y
-     ```
+3. **Install Jenkins.**
+   - Run the installer and follow the setup instructions.
+   - During installation:
+     - Choose the installation folder (e.g., `C:\Jenkins`).
+     - Select **Run Jenkins as a Service**.
 
-5. **Start Jenkins.**
-   - Start the Jenkins service:
-     ```bash
-     sudo systemctl start jenkins
-     ```
-   - Enable Jenkins to start on boot:
-     ```bash
-     sudo systemctl enable jenkins
-     ```
+4. **Start Jenkins.**
+   - Jenkins should start automatically after installation. If not, open **Services**, find **Jenkins**, and start the service manually.
 
-6. **Verify Jenkins is running.**
-   - Check the status of Jenkins:
-     ```bash
-     sudo systemctl status jenkins
-     ```
+5. **Verify Jenkins is running.**
    - Open a browser and navigate to:
      ```
      http://localhost:8080
      ```
 
-7. **Unlock Jenkins.**
+6. **Unlock Jenkins.**
    - Retrieve the initial admin password:
-     ```bash
-     sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+     ```cmd
+     type C:\Jenkins\secrets\initialAdminPassword
      ```
    - Copy the password and paste it into the Jenkins setup page.
 
-8. **Install suggested plugins.**
+7. **Install suggested plugins.**
    - Follow the Jenkins setup wizard and select **Install suggested plugins**.
 
-9. **Create an admin user.**
+8. **Create an admin user.**
    - Create a new admin user with your credentials and complete the setup.
 
 ---
 
 ### **Part 2: Preparing the Microservices**
 
-10. **Ensure `UserService` and `OrderService` are ready.**
-    - Ensure the two microservices (`UserService` and `OrderService`) are in separate Git repositories.
-    - Push the projects to a Git hosting platform (e.g., GitHub).
+9. **Ensure `UserService` and `OrderService` are ready.**
+   - Ensure the two microservices (`UserService` and `OrderService`) are in separate Git repositories.
+   - Push the projects to a Git hosting platform (e.g., GitHub).
 
-11. **Configure `pom.xml` for Jenkins integration.**
+10. **Configure `pom.xml` for Jenkins integration.**
     - Ensure the `pom.xml` files of both microservices include a `surefire` plugin for running tests:
       ```xml
       <build>
@@ -108,42 +79,42 @@ Learn how to install and configure Jenkins on Linux to automate the build, testi
 
 ### **Part 3: Configuring Jenkins for CI**
 
-12. **Create a Jenkins job for `UserService`.**
+11. **Create a Jenkins job for `UserService`.**
     - Navigate to the Jenkins dashboard and click **New Item**.
     - Enter the name `UserService-CI` and select **Freestyle Project**.
     - Click **OK**.
 
-13. **Configure the Git repository for `UserService`.**
+12. **Configure the Git repository for `UserService`.**
     - In the project configuration, go to the **Source Code Management** section.
     - Select **Git** and add the repository URL for `UserService`.
 
-14. **Add a build step for Maven.**
+13. **Add a build step for Maven.**
     - In the **Build** section, click **Add build step** and select **Invoke top-level Maven targets**.
     - Set the **Goals** to:
-      ```bash
+      ```cmd
       clean install
       ```
 
-15. **Save and build the job.**
+14. **Save and build the job.**
     - Click **Save** and then click **Build Now**.
     - Verify that the build succeeds.
 
-16. **Create a Jenkins job for `OrderService`.**
-    - Repeat steps 12–15 for the `OrderService` microservice.
+15. **Create a Jenkins job for `OrderService`.**
+    - Repeat steps 11–14 for the `OrderService` microservice.
 
 ---
 
 ### **Part 4: Creating a Jenkins Pipeline**
 
-17. **Install the Pipeline plugin.**
+16. **Install the Pipeline plugin.**
     - Navigate to **Manage Jenkins > Manage Plugins**.
     - Search for **Pipeline** and install it.
 
-18. **Create a new pipeline job.**
+17. **Create a new pipeline job.**
     - Go to the Jenkins dashboard, click **New Item**, and select **Pipeline**.
     - Name it `Microservices-CI-Pipeline` and click **OK**.
 
-19. **Define the pipeline script.**
+18. **Define the pipeline script.**
     - In the **Pipeline** section, select **Pipeline script**.
     - Add the following script:
       ```groovy
@@ -152,17 +123,17 @@ Learn how to install and configure Jenkins on Linux to automate the build, testi
           stages {
               stage('Build UserService') {
                   steps {
-                      sh 'git clone <UserService Git Repository>'
+                      bat 'git clone <UserService Git Repository>'
                       dir('user-service') {
-                          sh './mvnw clean install'
+                          bat './mvnw clean install'
                       }
                   }
               }
               stage('Build OrderService') {
                   steps {
-                      sh 'git clone <OrderService Git Repository>'
+                      bat 'git clone <OrderService Git Repository>'
                       dir('order-service') {
-                          sh './mvnw clean install'
+                          bat './mvnw clean install'
                       }
                   }
               }
@@ -171,7 +142,7 @@ Learn how to install and configure Jenkins on Linux to automate the build, testi
       ```
       - Replace `<UserService Git Repository>` and `<OrderService Git Repository>` with the actual repository URLs.
 
-20. **Save and run the pipeline.**
+19. **Save and run the pipeline.**
     - Save the pipeline and click **Build Now**.
     - Verify that both services are built successfully.
 
@@ -179,17 +150,17 @@ Learn how to install and configure Jenkins on Linux to automate the build, testi
 
 ### **Part 5: Deployment (Optional)**
 
-21. **Deploy artifacts to a server.**
+20. **Deploy artifacts to a server.**
     - Add a new pipeline stage for deployment. For example:
       ```groovy
       stage('Deploy to Server') {
           steps {
-              sh 'scp target/*.jar user@server:/path/to/deployment/'
+              bat 'copy target/*.jar \\\\<server>\\deployment\\'
           }
       }
       ```
 
-22. **Automate deployment triggers.**
+21. **Automate deployment triggers.**
     - Configure webhooks in your Git repositories to trigger builds automatically when code is pushed.
 
 ---

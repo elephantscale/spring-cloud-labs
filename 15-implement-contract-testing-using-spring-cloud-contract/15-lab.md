@@ -12,12 +12,13 @@ Learn how to use Spring Cloud Contract to create and verify consumer-driven cont
 1. **Generate a new Spring Boot project for `UserService`.**
    - Visit [https://start.spring.io/](https://start.spring.io/).
    - Configure the project:
+     - **Spring Boot Version**: `3.1.4`
      - **Group Id**: `com.microservices`
      - **Artifact Id**: `user-service`
      - **Dependencies**:
        - Spring Web
        - Spring Boot Actuator
-       - Spring Cloud Contract Verifier
+       - Spring Cloud Contract Verifier (Version: `4.0.2`)
    - Extract the zip file into a folder named `UserService`.
 
 2. **Import the `UserService` project into your IDE.**
@@ -98,7 +99,7 @@ Learn how to use Spring Cloud Contract to create and verify consumer-driven cont
      ```
 
 6. **Create a base test class for the contract.**
-   - Create a new file `BaseContractTest.java` in the `src/test/java/com/microservices/userservice` folder:
+   - Create a new file `BaseContractTest.java` in `src/test/java/com/microservices/userservice`:
      ```java
      package com.microservices.userservice;
 
@@ -130,11 +131,12 @@ Learn how to use Spring Cloud Contract to create and verify consumer-driven cont
 9. **Generate a new Spring Boot project for `OrderService`.**
    - Visit [https://start.spring.io/](https://start.spring.io/).
    - Configure the project:
+     - **Spring Boot Version**: `3.1.4`
      - **Artifact Id**: `order-service`
      - **Dependencies**:
        - Spring Web
        - Spring Boot Actuator
-       - Spring Cloud Contract Stub Runner
+       - Spring Cloud Contract Stub Runner (Version: `4.0.2`)
        - Spring WebClient
    - Extract the zip file into a folder named `OrderService`.
 
@@ -281,16 +283,3 @@ Learn how to use Spring Cloud Contract to create and verify consumer-driven cont
    - Create a `ProductService` and implement contract testing with `UserService`.
 
 ---
-
-### **Dependencies**
-```xml
-<dependencies>
-    <!-- Spring Cloud Contract Verifier -->
-    <dependency>
-        <groupId>org.springframework.cloud</groupId>
-        <artifactId>spring-cloud-starter-contract-verifier</artifactId>
-    </dependency>
-
-    <!-- Spring Cloud Contract Stub Runner -->
-    <dependency>
-        <groupId>org.springframework.cloud</groupId

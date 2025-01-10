@@ -7,22 +7,21 @@ Learn how to containerize Spring Boot microservices using Docker. Build Docker i
 
 ## **Lab Steps**
 
-### **Part 1: Installing Docker on Windows**
+### **Part 1: Installing Docker**
 
 1. **Download Docker Desktop.**
-   - Visit [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop) and download the installer for Windows.
+   - Visit [Docker Desktop](https://www.docker.com/products/docker-desktop) and download the installer for your operating system (Windows, macOS, or Linux).
 
 2. **Install Docker Desktop.**
    - Run the installer and follow the setup instructions.
-   - During installation, ensure **Use WSL 2 instead of Hyper-V** is selected.
 
 3. **Start Docker Desktop.**
    - Open Docker Desktop after installation.
-   - Ensure that Docker is running (look for the Docker icon in the system tray).
+   - Ensure Docker is running (look for the Docker icon in the system tray or taskbar).
 
 4. **Verify Docker installation.**
-   - Open a Command Prompt and run:
-     ```cmd
+   - Open a terminal or command prompt and run:
+     ```bash
      docker --version
      ```
    - Confirm that Docker is installed and the version is displayed.
@@ -56,8 +55,8 @@ Learn how to containerize Spring Boot microservices using Docker. Build Docker i
 
 8. **Build the JAR files for both services.**
    - Navigate to each project directory and run:
-     ```cmd
-     mvnw clean package
+     ```bash
+     ./mvnw clean package
      ```
 
 ---
@@ -66,19 +65,19 @@ Learn how to containerize Spring Boot microservices using Docker. Build Docker i
 
 9. **Build the Docker image for `UserService`.**
     - Run the following command from the `UserService` directory:
-      ```cmd
+      ```bash
       docker build -t user-service:1.0 .
       ```
 
 10. **Build the Docker image for `OrderService`.**
     - Run the following command from the `OrderService` directory:
-      ```cmd
+      ```bash
       docker build -t order-service:1.0 .
       ```
 
 11. **Verify Docker images.**
     - Check the built images using:
-      ```cmd
+      ```bash
       docker images
       ```
 
@@ -88,19 +87,19 @@ Learn how to containerize Spring Boot microservices using Docker. Build Docker i
 
 12. **Run the `UserService` container.**
     - Start a container for `UserService`:
-      ```cmd
+      ```bash
       docker run -d --name user-service -p 8081:8081 user-service:1.0
       ```
 
 13. **Run the `OrderService` container.**
     - Start a container for `OrderService`:
-      ```cmd
+      ```bash
       docker run -d --name order-service -p 8082:8082 order-service:1.0
       ```
 
 14. **Verify running containers.**
     - List all running containers:
-      ```cmd
+      ```bash
       docker ps
       ```
 
@@ -120,28 +119,28 @@ Learn how to containerize Spring Boot microservices using Docker. Build Docker i
 
 16. **Stop the containers.**
     - Stop both services:
-      ```cmd
+      ```bash
       docker stop user-service
       docker stop order-service
       ```
 
 17. **Restart the containers.**
     - Start the containers again:
-      ```cmd
+      ```bash
       docker start user-service
       docker start order-service
       ```
 
 18. **Remove containers.**
     - Remove the stopped containers:
-      ```cmd
+      ```bash
       docker rm user-service
       docker rm order-service
       ```
 
 19. **Remove Docker images.**
     - Delete the Docker images:
-      ```cmd
+      ```bash
       docker rmi user-service:1.0
       docker rmi order-service:1.0
       ```
@@ -152,27 +151,27 @@ Learn how to containerize Spring Boot microservices using Docker. Build Docker i
 
 20. **Tag the images for a Docker registry.**
     - Tag the `UserService` image:
-      ```cmd
+      ```bash
       docker tag user-service:1.0 <your-dockerhub-username>/user-service:1.0
       ```
     - Tag the `OrderService` image:
-      ```cmd
+      ```bash
       docker tag order-service:1.0 <your-dockerhub-username>/order-service:1.0
       ```
 
 21. **Log in to Docker Hub.**
     - Authenticate with Docker Hub:
-      ```cmd
+      ```bash
       docker login
       ```
 
 22. **Push the images to Docker Hub.**
     - Push `UserService`:
-      ```cmd
+      ```bash
       docker push <your-dockerhub-username>/user-service:1.0
       ```
     - Push `OrderService`:
-      ```cmd
+      ```bash
       docker push <your-dockerhub-username>/order-service:1.0
       ```
 

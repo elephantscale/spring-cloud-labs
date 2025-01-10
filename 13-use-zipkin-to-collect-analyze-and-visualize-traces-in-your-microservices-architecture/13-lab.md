@@ -7,28 +7,27 @@ Learn how to integrate Spring Cloud Sleuth with Zipkin to collect and visualize 
 
 ## **Lab Steps**
 
-### **Part 1: Installing and Running Zipkin on Windows**
+### **Part 1: Installing and Running Zipkin**
 
-1. **Install Java (required for running Zipkin).**
-   - Open a Command Prompt and check if Java is installed:
-     ```cmd
+1. **Ensure Java is installed (required for running Zipkin).**
+   - Check if Java is installed by running:
+     ```bash
      java -version
      ```
-   - If Java is not installed:
-     - Download JDK 17 from [https://adoptium.net/](https://adoptium.net/).
-     - Install it by following the setup instructions.
-   - Verify the installation:
-     ```cmd
-     java -version
-     ```
+   - If not installed:
+     - Download and install JDK 17 from [AdoptOpenJDK](https://adoptium.net/).
+     - Verify the installation:
+       ```bash
+       java -version
+       ```
 
 2. **Download the Zipkin Server.**
-   - Visit [https://zipkin.io/pages/quickstart](https://zipkin.io/pages/quickstart) and download the latest Zipkin JAR file.
-   - Save the file (e.g., `zipkin-server-2.23.16-exec.jar`) to a folder, such as `C:\Zipkin`.
+   - Visit [Zipkin Quickstart](https://zipkin.io/pages/quickstart) and download the latest Zipkin JAR file.
+   - Save the file (e.g., `zipkin-server-2.23.16-exec.jar`) to a directory like `~/zipkin` or `C:\Zipkin`.
 
 3. **Run the Zipkin server.**
-   - Open a Command Prompt, navigate to the folder containing the JAR file, and start Zipkin:
-     ```cmd
+   - Open a terminal or command prompt, navigate to the directory containing the JAR file, and start Zipkin:
+     ```bash
      java -jar zipkin-server-2.23.16-exec.jar
      ```
    - Zipkin will start on port `9411`.
@@ -47,6 +46,7 @@ Learn how to integrate Spring Cloud Sleuth with Zipkin to collect and visualize 
 5. **Generate a new Spring Boot project for `UserService`.**
    - Visit [https://start.spring.io/](https://start.spring.io/).
    - Configure the project:
+     - **Spring Boot Version**: Select **3.4.1**.
      - **Group Id**: `com.microservices`
      - **Artifact Id**: `user-service`
      - **Name**: `UserService`
@@ -57,19 +57,24 @@ Learn how to integrate Spring Cloud Sleuth with Zipkin to collect and visualize 
    - Extract the zip file into a folder named `UserService`.
 
 6. **Import the `UserService` project into your IDE.**
-   - Open your IDE and import the `UserService` project as a Maven project.
 
 7. **Configure `UserService` to send traces to Zipkin.**
-   - Add the following properties in `src/main/resources/application.properties`:
-     ```properties
-     server.port=8081
-     spring.application.name=user-service
-     spring.zipkin.base-url=http://localhost:9411
-     spring.sleuth.sampler.probability=1.0
+   - Add the following properties in `src/main/resources/application.yml`:
+     ```yaml
+     server:
+       port: 8081
+     spring:
+       application:
+         name: user-service
+       zipkin:
+         base-url: http://localhost:9411
+       sleuth:
+         sampler:
+           probability: 1.0
      ```
 
 8. **Create a REST controller in `UserService`.**
-   - Create a new file `UserController.java`:
+   - Add the file `UserController.java`:
      ```java
      package com.microservices.userservice;
 
@@ -88,19 +93,18 @@ Learn how to integrate Spring Cloud Sleuth with Zipkin to collect and visualize 
 
 9. **Run the `UserService`.**
    - Start the application using:
-     ```cmd
-     mvnw spring-boot:run
+     ```bash
+     ./mvnw spring-boot:run
      ```
 
 10. **Test the `/users` endpoint.**
-    - Access `http://localhost:8081/users` and verify that the response is returned successfully.
+    - Access `http://localhost:8081/users` and verify the response.
 
 ---
 
 ### **Part 3: Configuring the Consumer Microservice**
 
 11. **Generate a new Spring Boot project for `OrderService`.**
-    - Visit [https://start.spring.io/](https://start.spring.io/).
     - Configure the project:
       - **Artifact Id**: `order-service`
       - **Dependencies**:
@@ -111,19 +115,24 @@ Learn how to integrate Spring Cloud Sleuth with Zipkin to collect and visualize 
     - Extract the zip file into a folder named `OrderService`.
 
 12. **Import the `OrderService` project into your IDE.**
-    - Open your IDE and import the `OrderService` project as a Maven project.
 
 13. **Configure `OrderService` to send traces to Zipkin.**
-    - Add the following properties in `src/main/resources/application.properties`:
-      ```properties
-      server.port=8082
-      spring.application.name=order-service
-      spring.zipkin.base-url=http://localhost:9411
-      spring.sleuth.sampler.probability=1.0
+    - Add the following properties in `src/main/resources/application.yml`:
+      ```yaml
+      server:
+        port: 8082
+      spring:
+        application:
+          name: order-service
+        zipkin:
+          base-url: http://localhost:9411
+        sleuth:
+          sampler:
+            probability: 1.0
       ```
 
 14. **Create a REST controller in `OrderService`.**
-    - Create a new file `OrderController.java`:
+    - Add the file `OrderController.java`:
       ```java
       package com.microservices.orderservice;
 
@@ -175,10 +184,9 @@ Learn how to integrate Spring Cloud Sleuth with Zipkin to collect and visualize 
       ```
 
 16. **Run the `OrderService`.**
-    - Start the application using:
-      ```cmd
-      mvnw spring-boot:run
-      ```
+    ```bash
+    ./mvnw spring-boot:run
+    ```
 
 17. **Test the `/orders` endpoint.**
     - Access `http://localhost:8082/orders` and verify that it fetches data from `UserService`.
@@ -205,7 +213,7 @@ Learn how to integrate Spring Cloud Sleuth with Zipkin to collect and visualize 
 
 ---
 
-### **Optional Exercises (20 mins)**
+### **Optional Exercises**
 
 1. **Add a third microservice.**
    - Create a `ProductService` and integrate it with the existing services.
@@ -213,3 +221,5 @@ Learn how to integrate Spring Cloud Sleuth with Zipkin to collect and visualize 
 
 2. **Simulate a service failure.**
    - Stop `UserService` and observe how Zipkin visualizes the error in the trace.
+
+---

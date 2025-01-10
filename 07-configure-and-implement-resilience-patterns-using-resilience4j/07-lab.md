@@ -12,6 +12,7 @@ Learn how to implement resilience patterns, including circuit breakers, retries,
 1. **Generate a new Spring Boot project using Spring Initializr.**
    - Visit [https://start.spring.io/](https://start.spring.io/).
    - Configure the project:
+     - **Spring Boot Version**: Select **3.4.1**.
      - **Group Id**: `com.microservices`
      - **Artifact Id**: `user-service`
      - **Name**: `UserService`
@@ -23,18 +24,21 @@ Learn how to implement resilience patterns, including circuit breakers, retries,
    - Extract the downloaded zip file into a folder named `UserService`.
 
 2. **Import the project into your IDE.**
-   - Open your IDE and import the `UserService` project as a Maven project.
 
-3. **Add Resilience4j configurations to `application.properties`.**
-   - Open the `src/main/resources/application.properties` file and add:
-     ```properties
-     resilience4j.circuitbreaker.instances.user-service.failure-rate-threshold=50
-     resilience4j.circuitbreaker.instances.user-service.sliding-window-size=5
-     resilience4j.circuitbreaker.instances.user-service.wait-duration-in-open-state=5s
+3. **Add Resilience4j configurations to `application.yml`.**
+   - Create `application.yml` in `src/main/resources` and add:
+     ```yaml
+     resilience4j:
+       circuitbreaker:
+         instances:
+           user-service:
+             failure-rate-threshold: 50
+             sliding-window-size: 5
+             wait-duration-in-open-state: 5s
      ```
 
 4. **Add a REST controller to simulate a user endpoint.**
-   - Create a new file `UserController.java` in the `src/main/java/com/microservices/userservice` folder:
+   - Create `UserController.java` in `src/main/java/com/microservices/userservice`:
      ```java
      package com.microservices.userservice;
 
@@ -63,7 +67,7 @@ Learn how to implement resilience patterns, including circuit breakers, retries,
      ```
 
 5. **Run the application.**
-   - Start the `UserService` application using:
+   - Start the application:
      ```bash
      ./mvnw spring-boot:run
      ```
@@ -73,21 +77,25 @@ Learn how to implement resilience patterns, including circuit breakers, retries,
      ```
      http://localhost:8080/users
      ```
-   - Verify that the fallback response `"Fallback: No users available"` is returned after triggering the circuit breaker.
+   - Verify the fallback response: `"Fallback: No users available"`.
 
 ---
 
 ### **Part 2: Adding Retry Mechanism**
 
-7. **Configure retries in `application.properties`.**
-   - Add the following Resilience4j retry properties:
-     ```properties
-     resilience4j.retry.instances.user-service.max-attempts=3
-     resilience4j.retry.instances.user-service.wait-duration=500ms
+7. **Configure retries in `application.yml`.**
+   - Add:
+     ```yaml
+     resilience4j:
+       retry:
+         instances:
+           user-service:
+             max-attempts: 3
+             wait-duration: 500ms
      ```
 
-8. **Update the `UserController` to include a retry mechanism.**
-   - Add the `@Retry` annotation to the `getUsers` method:
+8. **Add retry to the `UserController`.**
+   - Update the `@GetMapping` method:
      ```java
      import io.github.resilience4j.retry.annotation.Retry;
 
@@ -101,22 +109,26 @@ Learn how to implement resilience patterns, including circuit breakers, retries,
      ```
 
 9. **Test the retry mechanism.**
-   - Use Postman or a browser to call the `/users` endpoint.
-   - Verify that the service attempts to retry the method up to three times before falling back to the fallback method.
+   - Access the `/users` endpoint.
+   - Verify that the service retries up to 3 times before falling back.
 
 ---
 
 ### **Part 3: Adding Rate Limiting**
 
-10. **Configure rate limiting in `application.properties`.**
-    - Add the following Resilience4j rate limiter properties:
-      ```properties
-      resilience4j.ratelimiter.instances.user-service.limit-for-period=2
-      resilience4j.ratelimiter.instances.user-service.limit-refresh-period=10s
+10. **Configure rate limiting in `application.yml`.**
+    - Add:
+      ```yaml
+      resilience4j:
+        ratelimiter:
+          instances:
+            user-service:
+              limit-for-period: 2
+              limit-refresh-period: 10s
       ```
 
-11. **Add the rate limiter to the `UserController`.**
-    - Update the `getUsers` method to include the `@RateLimiter` annotation:
+11. **Add rate limiting to the `UserController`.**
+    - Update the `@GetMapping` method:
       ```java
       import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 
@@ -131,22 +143,26 @@ Learn how to implement resilience patterns, including circuit breakers, retries,
       ```
 
 12. **Test rate limiting.**
-    - Call the `/users` endpoint multiple times within a 10-second window.
-    - Verify that after 2 requests, subsequent calls are blocked until the refresh period ends.
+    - Call the `/users` endpoint multiple times within 10 seconds.
+    - Verify that after 2 requests, subsequent calls are blocked.
 
 ---
 
 ### **Part 4: Adding Bulkhead Isolation**
 
-13. **Configure bulkhead isolation in `application.properties`.**
-    - Add the following Resilience4j bulkhead properties:
-      ```properties
-      resilience4j.bulkhead.instances.user-service.max-concurrent-calls=2
-      resilience4j.bulkhead.instances.user-service.max-wait-duration=0
+13. **Configure bulkhead isolation in `application.yml`.**
+    - Add:
+      ```yaml
+      resilience4j:
+        bulkhead:
+          instances:
+            user-service:
+              max-concurrent-calls: 2
+              max-wait-duration: 0
       ```
 
-14. **Add the bulkhead to the `UserController`.**
-    - Update the `getUsers` method to include the `@Bulkhead` annotation:
+14. **Add bulkhead isolation to the `UserController`.**
+    - Update the `@GetMapping` method:
       ```java
       import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 
@@ -163,70 +179,41 @@ Learn how to implement resilience patterns, including circuit breakers, retries,
 
 15. **Test bulkhead isolation.**
     - Simulate multiple concurrent calls to the `/users` endpoint.
-    - Verify that only 2 concurrent requests are allowed, and additional requests are immediately rejected.
+    - Verify that only 2 concurrent requests are allowed.
 
 ---
 
 ### **Part 5: Monitoring with Resilience4j**
 
-16. **Add Spring Boot Actuator dependency.**
-    - Ensure the following dependency is added in `pom.xml`:
-      ```xml
-      <dependency>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter-actuator</artifactId>
-      </dependency>
+16. **Expose Actuator endpoints.**
+    - Add to `application.yml`:
+      ```yaml
+      management:
+        endpoints:
+          web:
+            exposure:
+              include: health,metrics
       ```
 
-17. **Expose Actuator endpoints.**
-    - Add the following to `application.properties`:
-      ```properties
-      management.endpoints.web.exposure.include=health,metrics
-      ```
-
-18. **Access Resilience4j metrics.**
+17. **Access Resilience4j metrics.**
     - Start the application and access:
       ```
       http://localhost:8080/actuator/metrics/resilience4j.circuitbreaker.calls
       ```
-    - Verify that metrics for circuit breaker calls are displayed.
 
-19. **Test monitoring under load.**
-    - Simulate multiple requests to the `/users` endpoint and observe the metrics for retries, rate limiting, and bulkhead.
-
----
-
-### **Optional Exercises (20 mins)**
-
-1. **Test circuit breaker recovery.**
-   - Allow the circuit breaker to reset by waiting for the `wait-duration-in-open-state` to elapse.
-   - Test if the service resumes normal operation.
-
-2. **Create a custom fallback method.**
-   - Implement different fallback methods for various failure scenarios and test their behavior.
+18. **Test monitoring under load.**
+    - Simulate requests to `/users` and observe metrics for retries, rate limiting, and bulkhead.
 
 ---
 
-### **Dependencies**
-The verified dependencies for this lab are:
+### **Optional Exercises**
 
-```xml
-<dependencies>
-    <!-- Spring Web -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-web</artifactId>
-    </dependency>
+1. **Test Circuit Breaker Recovery.**
+   - Allow the circuit breaker to reset after `wait-duration-in-open-state`.
+   - Verify the service resumes normal operation.
 
-    <!-- Resilience4j -->
-    <dependency>
-        <groupId>io.github.resilience4j</groupId>
-        <artifactId>resilience4j-spring-boot3</artifactId>
-    </dependency>
+2. **Simulate Rate Limit Breaches.**
+   - Call `/users` frequently to observe rate limiter behavior.
 
-    <!-- Spring Boot Actuator -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-actuator</artifactId>
-    </dependency>
-</dependencies>
+3. **Test Bulkhead Under Stress.**
+   - Simulate high concurrency to verify isolation limits.

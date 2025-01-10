@@ -7,36 +7,35 @@ Learn how to deploy `UserService` and `OrderService` microservices on Kubernetes
 
 ## **Lab Steps**
 
-### **Part 1: Installing Kubernetes and Minikube on Windows**
+### **Part 1: Installing Kubernetes and Minikube**
 
 1. **Install Minikube.**
-   - Download the Minikube installer for Windows from [https://minikube.sigs.k8s.io/docs/start/](https://minikube.sigs.k8s.io/docs/start/).
-   - Run the installer and follow the setup instructions.
+   - Visit [Minikube Installation](https://minikube.sigs.k8s.io/docs/start/) and follow the instructions for your operating system.
 
 2. **Install Kubectl.**
-   - Download the Kubectl binary for Windows from [https://kubernetes.io/docs/tasks/tools/](https://kubernetes.io/docs/tasks/tools/).
-   - Add the downloaded binary to your system `PATH`.
+   - Download Kubectl from [Kubernetes Tools](https://kubernetes.io/docs/tasks/tools/).
+   - Follow the installation steps and add it to your system's `PATH`.
 
 3. **Verify Minikube installation.**
-   - Open a Command Prompt and run:
-     ```cmd
+   - Run:
+     ```bash
      minikube version
      ```
-   - Confirm that Minikube is installed.
+   - Confirm Minikube is installed.
 
 4. **Start Minikube.**
    - Start a Minikube cluster:
-     ```cmd
+     ```bash
      minikube start --driver=docker
      ```
 
 5. **Verify Kubernetes setup.**
-   - Check the Kubernetes cluster:
-     ```cmd
+   - Check the cluster information:
+     ```bash
      kubectl cluster-info
      ```
-   - Confirm that Minikube is running:
-     ```cmd
+   - Confirm Minikube is running:
+     ```bash
      minikube status
      ```
 
@@ -45,9 +44,9 @@ Learn how to deploy `UserService` and `OrderService` microservices on Kubernetes
 ### **Part 2: Preparing Microservices for Deployment**
 
 6. **Ensure Docker images for `UserService` and `OrderService` are available.**
-   - Use the images created in **Lab 16** or build new ones.
-   - If necessary, load the images into Minikube:
-     ```cmd
+   - Use the Docker images built in **Lab 16** or create new ones.
+   - Load the images into Minikube if necessary:
+     ```bash
      minikube image load user-service:1.0
      minikube image load order-service:1.0
      ```
@@ -140,27 +139,27 @@ Learn how to deploy `UserService` and `OrderService` microservices on Kubernetes
 
 11. **Apply the `UserService` deployment and service.**
     - Run:
-      ```cmd
+      ```bash
       kubectl apply -f user-service-deployment.yaml
       kubectl apply -f user-service-service.yaml
       ```
 
 12. **Apply the `OrderService` deployment and service.**
     - Run:
-      ```cmd
+      ```bash
       kubectl apply -f order-service-deployment.yaml
       kubectl apply -f order-service-service.yaml
       ```
 
 13. **Verify the pods are running.**
     - Check all running pods:
-      ```cmd
+      ```bash
       kubectl get pods
       ```
 
 14. **Verify services are created.**
     - Check the services:
-      ```cmd
+      ```bash
       kubectl get services
       ```
 
@@ -175,7 +174,7 @@ Learn how to deploy `UserService` and `OrderService` microservices on Kubernetes
         nodePort: 30002
       ```
     - Reapply the service:
-      ```cmd
+      ```bash
       kubectl apply -f order-service-service.yaml
       ```
 
@@ -185,7 +184,7 @@ Learn how to deploy `UserService` and `OrderService` microservices on Kubernetes
 
 16. **Access the `OrderService` using NodePort.**
     - Use the Minikube IP to access the service:
-      ```cmd
+      ```bash
       minikube ip
       ```
     - Open a browser or use Postman to call:
@@ -202,25 +201,25 @@ Learn how to deploy `UserService` and `OrderService` microservices on Kubernetes
 
 18. **Scale the `OrderService` deployment.**
     - Scale the replicas to 3:
-      ```cmd
+      ```bash
       kubectl scale deployment order-service --replicas=3
       ```
 
 19. **Check the scaled pods.**
     - Verify that 3 pods are running:
-      ```cmd
+      ```bash
       kubectl get pods -l app=order-service
       ```
 
 20. **Monitor resource usage.**
     - Use the following command to check resource usage:
-      ```cmd
+      ```bash
       kubectl top pods
       ```
 
 21. **Delete the deployments and services.**
     - Clean up the cluster:
-      ```cmd
+      ```bash
       kubectl delete deployment user-service order-service
       kubectl delete service user-service order-service
       ```

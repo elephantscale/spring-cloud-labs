@@ -1,38 +1,43 @@
 # **Lab 14: Set Up a CI Pipeline with Jenkins for Automated Testing and Deployment of Microservices**
 
 ## **Objective**
-Learn how to install and configure Jenkins on Windows to automate the build, testing, and deployment process for Spring Boot microservices. Create a Jenkins pipeline that builds and deploys two microservices: `UserService` and `OrderService`.
+Learn how to install and configure Jenkins to automate the build, testing, and deployment process for Spring Boot microservices. Create a Jenkins pipeline that builds and deploys two microservices: `UserService` and `OrderService`.
 
 ---
 
 ## **Lab Steps**
 
-### **Part 1: Installing Jenkins on Windows**
+### **Part 1: Installing Jenkins**
 
 1. **Install Java (required for Jenkins).**
-   - Open a Command Prompt and check if Java is installed:
-     ```cmd
+   - Open a terminal or Command Prompt and check if Java is installed:
+     ```bash
      java -version
      ```
    - If Java is not installed:
-     - Download JDK 17 from [https://adoptium.net/](https://adoptium.net/).
+     - Download JDK 17 from [Adoptium](https://adoptium.net/).
      - Install it by following the setup instructions.
    - Verify the installation:
-     ```cmd
+     ```bash
      java -version
      ```
 
 2. **Download Jenkins.**
-   - Visit [https://www.jenkins.io/download/](https://www.jenkins.io/download/) and download the **Windows Installer**.
+   - Visit [Jenkins Downloads](https://www.jenkins.io/download/) and download the installer for your operating system.
 
 3. **Install Jenkins.**
-   - Run the installer and follow the setup instructions.
-   - During installation:
-     - Choose the installation folder (e.g., `C:\Jenkins`).
-     - Select **Run Jenkins as a Service**.
+   - Run the installer and follow the setup instructions:
+     - For Linux: Use the package manager for your distribution.
+     - For Windows: Choose **Run Jenkins as a Service** during installation.
+     - For macOS: Use the `.pkg` installer.
 
 4. **Start Jenkins.**
-   - Jenkins should start automatically after installation. If not, open **Services**, find **Jenkins**, and start the service manually.
+   - If Jenkins does not start automatically:
+     - **Linux/macOS**: Run:
+       ```bash
+       sudo systemctl start jenkins
+       ```
+     - **Windows**: Start Jenkins from **Services**.
 
 5. **Verify Jenkins is running.**
    - Open a browser and navigate to:
@@ -42,9 +47,14 @@ Learn how to install and configure Jenkins on Windows to automate the build, tes
 
 6. **Unlock Jenkins.**
    - Retrieve the initial admin password:
-     ```cmd
-     type C:\Jenkins\secrets\initialAdminPassword
-     ```
+     - **Linux/macOS**:
+       ```bash
+       sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+       ```
+     - **Windows**:
+       ```cmd
+       type C:\Jenkins\secrets\initialAdminPassword
+       ```
    - Copy the password and paste it into the Jenkins setup page.
 
 7. **Install suggested plugins.**
@@ -58,11 +68,11 @@ Learn how to install and configure Jenkins on Windows to automate the build, tes
 ### **Part 2: Preparing the Microservices**
 
 9. **Ensure `UserService` and `OrderService` are ready.**
-   - Ensure the two microservices (`UserService` and `OrderService`) are in separate Git repositories.
-   - Push the projects to a Git hosting platform (e.g., GitHub).
+   - Ensure the two microservices are in separate Git repositories.
+   - Push the projects to a Git hosting platform (e.g., GitHub, GitLab, or Bitbucket).
 
 10. **Configure `pom.xml` for Jenkins integration.**
-    - Ensure the `pom.xml` files of both microservices include a `surefire` plugin for running tests:
+    - Ensure the `pom.xml` files of both microservices include the `surefire` plugin for running tests:
       ```xml
       <build>
           <plugins>
@@ -91,12 +101,12 @@ Learn how to install and configure Jenkins on Windows to automate the build, tes
 13. **Add a build step for Maven.**
     - In the **Build** section, click **Add build step** and select **Invoke top-level Maven targets**.
     - Set the **Goals** to:
-      ```cmd
+      ```
       clean install
       ```
 
 14. **Save and build the job.**
-    - Click **Save** and then click **Build Now**.
+    - Click **Save** and then **Build Now**.
     - Verify that the build succeeds.
 
 15. **Create a Jenkins job for `OrderService`.**
@@ -123,17 +133,35 @@ Learn how to install and configure Jenkins on Windows to automate the build, tes
           stages {
               stage('Build UserService') {
                   steps {
-                      bat 'git clone <UserService Git Repository>'
-                      dir('user-service') {
-                          bat './mvnw clean install'
+                      script {
+                          if (isUnix()) {
+                              sh 'git clone <UserService Git Repository>'
+                              dir('user-service') {
+                                  sh './mvnw clean install'
+                              }
+                          } else {
+                              bat 'git clone <UserService Git Repository>'
+                              dir('user-service') {
+                                  bat './mvnw clean install'
+                              }
+                          }
                       }
                   }
               }
               stage('Build OrderService') {
                   steps {
-                      bat 'git clone <OrderService Git Repository>'
-                      dir('order-service') {
-                          bat './mvnw clean install'
+                      script {
+                          if (isUnix()) {
+                              sh 'git clone <OrderService Git Repository>'
+                              dir('order-service') {
+                                  sh './mvnw clean install'
+                              }
+                          } else {
+                              bat 'git clone <OrderService Git Repository>'
+                              dir('order-service') {
+                                  bat './mvnw clean install'
+                              }
+                          }
                       }
                   }
               }
@@ -155,7 +183,13 @@ Learn how to install and configure Jenkins on Windows to automate the build, tes
       ```groovy
       stage('Deploy to Server') {
           steps {
-              bat 'copy target/*.jar \\\\<server>\\deployment\\'
+              script {
+                  if (isUnix()) {
+                      sh 'scp target/*.jar user@server:/path/to/deployment/'
+                  } else {
+                      bat 'copy target\\*.jar \\\\<server>\\deployment\\'
+                  }
+              }
           }
       }
       ```
@@ -165,7 +199,7 @@ Learn how to install and configure Jenkins on Windows to automate the build, tes
 
 ---
 
-### **Optional Exercises (20 mins)**
+### **Optional Exercises**
 
 1. **Add test automation to the pipeline.**
    - Add a pipeline stage to execute integration tests before deployment.

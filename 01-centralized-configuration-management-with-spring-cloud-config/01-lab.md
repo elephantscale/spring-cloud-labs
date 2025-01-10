@@ -1,4 +1,4 @@
-# **Lab 1: Centralized Configuration Management with Spring Cloud Config**
+# **Lab 1: Centralized Configuration Management with Spring Cloud Config (Spring Boot 3.4.1)**
 
 ## **Objective**
 Set up centralized configuration management for a microservices-based architecture using Spring Cloud Config. Learn to create a Config Server, integrate it with Git for configuration storage, connect a client microservice to retrieve configuration dynamically, and manage environment-specific properties.
@@ -12,6 +12,7 @@ Set up centralized configuration management for a microservices-based architectu
 1. **Generate a new Spring Boot project using Spring Initializr.**
    - Visit [https://start.spring.io/](https://start.spring.io/).
    - Configure the project:
+     - **Spring Boot Version**: Select **3.4.1** from the dropdown menu.
      - **Group Id**: `com.microservices`
      - **Artifact Id**: `config-server`
      - **Name**: `ConfigServer`
@@ -51,7 +52,7 @@ Set up centralized configuration management for a microservices-based architectu
    - Click **Create repository**.
 
 5. **Clone the repository locally.**
-   - Use the following Git command to clone the repository to your local machine:
+   - Open a terminal and run:
      ```bash
      git clone https://github.com/<your-username>/config-repo.git
      cd config-repo
@@ -59,17 +60,17 @@ Set up centralized configuration management for a microservices-based architectu
 
 6. **Add configuration files to the repository.**
    - Inside the cloned repository folder, create the following files:
-     - `application.yml`: Default configuration for all services.
+     - `application.yml`:
        ```yaml
        message: "Hello from Config Server!"
        ```
-     - `sample-service.yml`: Configuration specific to the `sample-service`.
+     - `sample-service.yml`:
        ```yaml
        message: "Hello from Sample Service!"
        ```
 
 7. **Commit and push the changes.**
-   - Use the following commands to add, commit, and push the changes:
+   - Run:
      ```bash
      git add .
      git commit -m "Added configuration files"
@@ -77,50 +78,56 @@ Set up centralized configuration management for a microservices-based architectu
      ```
 
 8. **Configure the Config Server to use the Git repository.**
-   - Open the `application.properties` file in the `ConfigServer` project and add:
-     ```properties
-     server.port=8888
-     spring.cloud.config.server.git.uri=https://github.com/<your-username>/config-repo
+   - Open the `application.yml` file in the `ConfigServer` project and add:
+     ```yaml
+     server:
+       port: 8888
+
+     spring:
+       cloud:
+         config:
+           server:
+             git:
+               uri: https://github.com/<your-username>/config-repo
      ```
 
 9. **Run the Config Server.**
-   - In your IDE, run the `ConfigServerApplication` class.
-   - Ensure the server starts on port `8888`.
+   - Run the `ConfigServerApplication` class from your IDE.
 
 10. **Test the Config Server.**
-    - Open a browser and test configuration retrieval by accessing:
+    - Open a browser and test:
       - Default configuration: `http://localhost:8888/application/default`
       - Service-specific configuration: `http://localhost:8888/sample-service/default`
-    - Verify that the responses match the configurations in your Git repository.
 
 ---
 
 ### **Part 2: Creating a Client Microservice**
 
 11. **Generate a new Spring Boot project using Spring Initializr.**
-    - Visit [https://start.spring.io/](https://start.spring.io/).
     - Configure the project:
+      - **Spring Boot Version**: Select **3.4.1** from the dropdown menu.
       - **Group Id**: `com.microservices`
       - **Artifact Id**: `sample-service`
       - **Name**: `SampleService`
       - **Dependencies**:
         - Spring Web
         - Spring Cloud Config Client
-    - Click **Generate** to download the project zip file.
-    - Extract the downloaded zip file into a folder named `SampleService`.
+    - Extract the project into a folder named `SampleService`.
 
 12. **Import the project into your IDE.**
-    - Open your IDE and import the `SampleService` project as a Maven project.
 
 13. **Configure the client to use the Config Server.**
-    - Open the `application.properties` file in the `SampleService` project and add:
-      ```properties
-      spring.application.name=sample-service
-      spring.cloud.config.uri=http://localhost:8888
+    - Open the `application.yml` file in `SampleService` and add:
+      ```yaml
+      spring:
+        application:
+          name: sample-service
+        cloud:
+          import: "configserver:http://localhost:8888"
       ```
 
 14. **Add a controller to verify configuration retrieval.**
-    - Create a new file `HelloController.java` in the `src/main/java/com/microservices/sampleservice` folder:
+    - Create `HelloController.java` in `src/main/java/com/microservices/sampleservice`:
       ```java
       package com.microservices.sampleservice;
 
@@ -140,22 +147,19 @@ Set up centralized configuration management for a microservices-based architectu
           }
       }
       ```
-    - *Explanation*: This controller reads the `message` property from the Config Server and returns it via a REST endpoint.
 
 15. **Run the client application.**
-    - Start the `SampleService` application from your IDE.
-    - Ensure it starts on the default port `8080`.
+    - Start the `SampleService` application.
 
 16. **Test the configuration retrieval.**
-    - Open a browser and access: `http://localhost:8080/message`.
-    - Verify that the response matches the `message` property defined in the `sample-service.yml` file in the Git repository.
+    - Access: `http://localhost:8080/message`.
 
 ---
 
 ### **Part 3: Advanced Configuration Management**
 
-17. **Add Spring Actuator dependency to the client.**
-    - Open the `pom.xml` file and add the following dependency:
+17. **Add Spring Actuator dependency.**
+    - Add to `pom.xml`:
       ```xml
       <dependency>
           <groupId>org.springframework.boot</groupId>
@@ -163,53 +167,54 @@ Set up centralized configuration management for a microservices-based architectu
       </dependency>
       ```
 
-18. **Enable Actuator endpoints in the client.**
-    - Add the following to the `application.properties` file in the `SampleService` project:
-      ```properties
-      management.endpoints.web.exposure.include=refresh
+18. **Enable Actuator endpoints.**
+    - Add to `application.yml`:
+      ```yaml
+      management:
+        endpoints:
+          web:
+            exposure:
+              include: refresh
       ```
 
-19. **Modify the configuration file in the Git repository.**
-    - Update the `sample-service.yml` file in the Git repository with a new message:
+19. **Modify the configuration in Git.**
+    - Update `sample-service.yml`:
       ```yaml
       message: "Updated message from Config Server!"
       ```
-    - Commit and push the changes:
-      ```bash
-      git add .
-      git commit -m "Updated configuration for sample-service"
-      git push origin main
-      ```
+    - Push the changes.
 
-20. **Refresh the client configuration dynamically.**
-    - Use the following command to refresh the configuration without restarting the client:
+20. **Refresh the client configuration.**
+    - Use:
       ```bash
       curl -X POST http://localhost:8080/actuator/refresh
       ```
 
 21. **Verify the updated configuration.**
-    - Re-access `http://localhost:8080/message` in the browser and ensure the message reflects the updated value from the Git repository.
+    - Access `http://localhost:8080/message`.
 
 ---
 
-### **Optional Exercise (20 mins)**
+### **Optional Exercise**
 
 1. **Add environment-specific configurations.**
-   - Create the following files in the Git repository:
-     - `application-dev.yml`: Configuration for the `dev` environment.
+   - Create in Git:
+     - `application-dev.yml`:
        ```yaml
        message: "Hello from the Dev environment!"
        ```
-     - `application-prod.yml`: Configuration for the `prod` environment.
+     - `application-prod.yml`:
        ```yaml
        message: "Hello from the Production environment!"
        ```
-   - Commit and push the changes.
+   - Push changes.
 
-2. **Update the client to use a profile.**
-   - Add the following to the `application.properties` file in `SampleService`:
-     ```properties
-     spring.profiles.active=dev
+2. **Set a profile.**
+   - Add to `application.yml` in `SampleService`:
+     ```yaml
+     spring:
+       profiles:
+         active: dev
      ```
 
 3. **Test profile-specific configurations.**

@@ -1,4 +1,4 @@
-# **Lab 1: Centralized Configuration Management with Spring Cloud Config (Spring Boot 3.4.1)**
+# **Lab 1: Centralized Configuration Management with Spring Cloud Config**
 
 ## **Objective**
 Set up centralized configuration management for a microservices-based architecture using Spring Cloud Config. Learn to create a Config Server, integrate it with Git for configuration storage, connect a client microservice to retrieve configuration dynamically, and manage environment-specific properties.

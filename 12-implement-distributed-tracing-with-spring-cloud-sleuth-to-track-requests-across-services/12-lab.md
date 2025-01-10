@@ -1,200 +1,112 @@
-# **Lab 15: Implement Contract Testing Using Spring Cloud Contract**
+# **Lab 12: Implement Distributed Tracing with Spring Cloud Sleuth to Track Requests Across Services**
 
 ## **Objective**
-Learn how to use Spring Cloud Contract to create and verify consumer-driven contracts between microservices. Implement contract testing between `UserService` (producer) and `OrderService` (consumer).
+Learn how to use Spring Cloud Sleuth to enable distributed tracing across microservices. Understand how Sleuth automatically propagates trace IDs and spans to help track requests across services.
 
 ---
 
 ## **Lab Steps**
 
-### **Part 1: Setting Up the Producer (UserService)**
+### **Part 1: Setting Up Microservices for Tracing**
 
 1. **Generate a new Spring Boot project for `UserService`.**
    - Visit [https://start.spring.io/](https://start.spring.io/).
    - Configure the project:
-     - **Spring Boot Version**: `3.1.4`
+     - **Spring Boot Version**: Select **3.4.1**.
      - **Group Id**: `com.microservices`
      - **Artifact Id**: `user-service`
+     - **Name**: `UserService`
      - **Dependencies**:
        - Spring Web
        - Spring Boot Actuator
-       - Spring Cloud Contract Verifier (Version: `4.0.2`)
+       - Spring Cloud Sleuth
+   - Click **Generate** to download the project zip file.
    - Extract the zip file into a folder named `UserService`.
 
 2. **Import the `UserService` project into your IDE.**
-   - Open your IDE and import the `UserService` project as a Maven project.
 
-3. **Create a REST controller for `UserService`.**
-   - Create a new file `UserController.java`:
+3. **Create a REST controller in `UserService`.**
+   - Add the file `UserController.java`:
      ```java
      package com.microservices.userservice;
 
      import org.springframework.web.bind.annotation.GetMapping;
-     import org.springframework.web.bind.annotation.PathVariable;
      import org.springframework.web.bind.annotation.RestController;
 
      @RestController
      public class UserController {
 
-         @GetMapping("/users/{id}")
-         public User getUserById(@PathVariable String id) {
-             return new User(id, "John Doe");
-         }
-     }
-
-     class User {
-         private String id;
-         private String name;
-
-         public User(String id, String name) {
-             this.id = id;
-             this.name = name;
-         }
-
-         public String getId() { return id; }
-         public void setId(String id) { this.id = id; }
-         public String getName() { return name; }
-         public void setName(String name) { this.name = name; }
-     }
-     ```
-
-4. **Add a contract file.**
-   - Create a folder `src/test/resources/contracts` and add a file `user-get-contract.groovy`:
-     ```groovy
-     Contract.make {
-         description "Should return user details for a given ID"
-         request {
-             method GET()
-             urlPath('/users/1')
-         }
-         response {
-             status 200
-             body([
-                 id: '1',
-                 name: 'John Doe'
-             ])
-             headers {
-                 contentType(applicationJson())
-             }
+         @GetMapping("/users")
+         public String getUsers() {
+             return "List of users from UserService";
          }
      }
      ```
 
-5. **Enable Spring Cloud Contract Verifier.**
-   - Add the following Maven plugin to `pom.xml`:
-     ```xml
-     <build>
-         <plugins>
-             <plugin>
-                 <groupId>org.springframework.cloud</groupId>
-                 <artifactId>spring-cloud-contract-maven-plugin</artifactId>
-                 <version>4.0.2</version>
-                 <extensions>true</extensions>
-                 <configuration>
-                     <baseClassForTests>com.microservices.userservice.BaseContractTest</baseClassForTests>
-                 </configuration>
-             </plugin>
-         </plugins>
-     </build>
-     ```
-
-6. **Create a base test class for the contract.**
-   - Create a new file `BaseContractTest.java` in `src/test/java/com/microservices/userservice`:
-     ```java
-     package com.microservices.userservice;
-
-     import io.restassured.module.mockmvc.RestAssuredMockMvc;
-     import org.junit.jupiter.api.BeforeEach;
-
-     public abstract class BaseContractTest {
-
-         @BeforeEach
-         void setUp() {
-             RestAssuredMockMvc.standaloneSetup(new UserController());
-         }
-     }
-     ```
-
-7. **Generate stubs.**
-   - Run the following Maven command to generate the stubs:
+4. **Run the `UserService`.**
+   - Start the application:
      ```bash
-     ./mvnw clean install
+     ./mvnw spring-boot:run
      ```
 
-8. **Verify the generated stubs.**
-   - Ensure the stubs are available under `target/stubs`.
+5. **Test the `/users` endpoint.**
+   - Use Postman or a browser to access:
+     ```
+     http://localhost:8081/users
+     ```
+
+6. **Verify the Sleuth tracing ID is logged.**
+   - Check the logs to confirm that Sleuth automatically adds trace IDs and spans to each request.
 
 ---
 
-### **Part 2: Setting Up the Consumer (OrderService)**
+### **Part 2: Setting Up Another Microservice**
 
-9. **Generate a new Spring Boot project for `OrderService`.**
+7. **Generate a new Spring Boot project for `OrderService`.**
    - Visit [https://start.spring.io/](https://start.spring.io/).
    - Configure the project:
-     - **Spring Boot Version**: `3.1.4`
      - **Artifact Id**: `order-service`
      - **Dependencies**:
        - Spring Web
        - Spring Boot Actuator
-       - Spring Cloud Contract Stub Runner (Version: `4.0.2`)
+       - Spring Cloud Sleuth
        - Spring WebClient
    - Extract the zip file into a folder named `OrderService`.
 
-10. **Import the `OrderService` project into your IDE.**
-    - Open your IDE and import the `OrderService` project as a Maven project.
+8. **Import the `OrderService` project into your IDE.**
 
-11. **Add stub dependency for `UserService`.**
-    - Add the following to `pom.xml` to include the generated stubs:
-      ```xml
-      <dependency>
-          <groupId>com.microservices</groupId>
-          <artifactId>user-service</artifactId>
-          <version>0.0.1-SNAPSHOT</version>
-          <classifier>stubs</classifier>
-          <scope>test</scope>
-      </dependency>
-      ```
+9. **Create a REST controller in `OrderService`.**
+   - Add the file `OrderController.java`:
+     ```java
+     package com.microservices.orderservice;
 
-12. **Configure Stub Runner for `OrderService`.**
-    - Add the following properties in `src/test/resources/application.properties`:
-      ```properties
-      stubrunner.ids-to-fetch=com.microservices:user-service:+:stubs
-      stubrunner.stubs-mode=LOCAL
-      stubrunner.repository-root=target/stubs
-      ```
+     import org.springframework.beans.factory.annotation.Autowired;
+     import org.springframework.web.bind.annotation.GetMapping;
+     import org.springframework.web.bind.annotation.RestController;
+     import org.springframework.web.reactive.function.client.WebClient;
 
-13. **Create a REST controller in `OrderService`.**
-    - Create a new file `OrderController.java`:
-      ```java
-      package com.microservices.orderservice;
+     @RestController
+     public class OrderController {
 
-      import org.springframework.beans.factory.annotation.Autowired;
-      import org.springframework.web.bind.annotation.GetMapping;
-      import org.springframework.web.bind.annotation.RestController;
-      import org.springframework.web.reactive.function.client.WebClient;
+         @Autowired
+         private WebClient.Builder webClientBuilder;
 
-      @RestController
-      public class OrderController {
+         @GetMapping("/orders")
+         public String getOrders() {
+             String users = webClientBuilder.build()
+                     .get()
+                     .uri("http://localhost:8081/users")
+                     .retrieve()
+                     .bodyToMono(String.class)
+                     .block();
 
-          @Autowired
-          private WebClient.Builder webClientBuilder;
+             return "Orders from OrderService and Users: " + users;
+         }
+     }
+     ```
 
-          @GetMapping("/orders")
-          public String getOrders() {
-              String user = webClientBuilder.build()
-                      .get()
-                      .uri("http://localhost:8081/users/1")
-                      .retrieve()
-                      .bodyToMono(String.class)
-                      .block();
-
-              return "Orders from OrderService and User: " + user;
-          }
-      }
-      ```
-
-14. **Add WebClient configuration.**
-    - Add a `WebClient.Builder` bean in `OrderServiceApplication.java`:
+10. **Add WebClient configuration to `OrderService`.**
+    - Add the following in `OrderServiceApplication.java`:
       ```java
       import org.springframework.boot.SpringApplication;
       import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -215,71 +127,100 @@ Learn how to use Spring Cloud Contract to create and verify consumer-driven cont
       }
       ```
 
-15. **Run `OrderService`.**
-    - Start the application and test the `/orders` endpoint:
-      ```bash
-      ./mvnw spring-boot:run
+11. **Run the `OrderService`.**
+    ```bash
+    ./mvnw spring-boot:run
+    ```
+
+12. **Test the `/orders` endpoint.**
+    - Use Postman or a browser to access:
       ```
+      http://localhost:8082/orders
+      ```
+    - Verify that the response includes data from both `OrderService` and `UserService`.
+
+13. **Verify distributed tracing in logs.**
+    - Check the logs of both `UserService` and `OrderService`.
+    - Confirm that the same trace ID is propagated across both services for a single request.
 
 ---
 
-### **Part 3: Testing the Contract**
+### **Part 3: Adding Sleuth Customization**
 
-16. **Create a contract test for `OrderService`.**
-    - Create a new test file `OrderServiceContractTest.java` in `src/test/java/com/microservices/orderservice`:
+14. **Customize tracing in `UserService`.**
+    - Add the following properties in `application.yml`:
+      ```yaml
+      spring:
+        sleuth:
+          sampler:
+            probability: 1.0
+          trace-id128: true
+      ```
+
+15. **Customize tracing in `OrderService`.**
+    - Add the same properties as in `UserService` to ensure consistent tracing.
+
+16. **Log trace IDs in responses.**
+    - Modify `UserController` in `UserService` to include trace IDs:
       ```java
-      package com.microservices.orderservice;
+      import org.slf4j.MDC;
 
-      import org.junit.jupiter.api.Test;
-      import org.springframework.boot.test.context.SpringBootTest;
-      import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
-      import org.springframework.beans.factory.annotation.Autowired;
-      import org.springframework.web.reactive.function.client.WebClient;
-
-      @SpringBootTest
-      @AutoConfigureStubRunner
-      public class OrderServiceContractTest {
-
-          @Autowired
-          private WebClient.Builder webClientBuilder;
-
-          @Test
-          public void shouldFetchUserDetails() {
-              String user = webClientBuilder.build()
-                      .get()
-                      .uri("http://localhost:8081/users/1")
-                      .retrieve()
-                      .bodyToMono(String.class)
-                      .block();
-
-              assert user.contains("John Doe");
-          }
+      @GetMapping("/users")
+      public String getUsers() {
+          String traceId = MDC.get("traceId");
+          return "Trace ID: " + traceId + ", Users: [User1, User2]";
       }
       ```
 
-17. **Run the contract test.**
-    - Execute the tests using:
-      ```bash
-      ./mvnw test
-      ```
-
-18. **Verify test results.**
-    - Confirm that the contract test passes, ensuring compatibility between `UserService` and `OrderService`.
-
-19. **Push generated stubs to a repository (optional).**
-    - Upload the generated stubs to a Git or artifact repository for other consumers to use.
-
-20. **Validate the end-to-end setup.**
-    - Call the `/orders` endpoint, generate new stubs, and rerun tests to confirm the integration.
+17. **Test the customized tracing.**
+    - Call the `/orders` endpoint and verify that trace IDs are returned in responses.
 
 ---
 
-### **Optional Exercises (20 mins)**
+### **Part 4: Monitoring Tracing**
 
-1. **Extend the contract.**
-   - Add additional fields to the `User` object (e.g., `email`) and update the contract and tests.
+18. **Enable Spring Boot Actuator.**
+    - Ensure the following dependency is added in both services' `pom.xml`:
+      ```xml
+      <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-actuator</artifactId>
+      </dependency>
+      ```
 
-2. **Add a third consumer.**
-   - Create a `ProductService` and implement contract testing with `UserService`.
+19. **Expose tracing-related actuator endpoints.**
+    - Add the following to `application.yml` in both services:
+      ```yaml
+      management:
+        endpoints:
+          web:
+            exposure:
+              include: trace,health
+      ```
+
+20. **Access tracing actuator endpoints.**
+    - Use the following URLs to view trace information:
+      - For `UserService`: `http://localhost:8081/actuator/trace`
+      - For `OrderService`: `http://localhost:8082/actuator/trace`
+
+---
+
+### **Optional Exercises**
+
+1. **Integrate with Zipkin or Jaeger.**
+   - Install and run Zipkin locally or use a hosted instance.
+   - Configure Sleuth to export traces to Zipkin:
+     ```yaml
+     spring:
+       zipkin:
+         base-url: http://localhost:9411
+       sleuth:
+         sampler:
+           probability: 1.0
+     ```
+   - Verify traces in the Zipkin UI.
+
+2. **Add more microservices.**
+   - Create additional services (e.g., `ProductService`) and verify distributed tracing propagates across all services.
 
 ---

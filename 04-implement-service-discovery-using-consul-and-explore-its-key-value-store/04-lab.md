@@ -14,11 +14,11 @@ Set up a Consul server to enable dynamic service discovery and utilize its key-v
 
 2. **Extract the Consul binary.**
    - **Windows**:
-     - Unzip the downloaded file (e.g., `consul_1.15.1_windows_amd64.zip`) to a folder, such as `C:\HashiCorp\Consul`.
+     - Unzip the downloaded file (e.g., `consul_<version>_windows_amd64.zip`) to a folder, such as `C:\HashiCorp\Consul`.
    - **macOS/Linux**:
      - Extract the file to a directory, e.g., `/usr/local/bin/consul`:
        ```bash
-       unzip consul_1.15.1_<platform>.zip -d /usr/local/bin/
+       unzip consul_<version>_<platform>.zip -d /usr/local/bin/
        ```
 
 3. **Add Consul to the system PATH.**
@@ -58,7 +58,6 @@ Set up a Consul server to enable dynamic service discovery and utilize its key-v
          "greeting": "Hello from Consul KV Store!"
        }
        ```
-   - Save the key-value pair.
 
 7. **Verify KV store retrieval using the CLI.**
    - Run the following command:
@@ -69,7 +68,7 @@ Set up a Consul server to enable dynamic service discovery and utilize its key-v
 
 ---
 
-### **Part 2: Setting Up the Consul Server in Spring Boot**
+### **Part 2: Setting Up a Consul-Enabled Service**
 
 8. **Generate a new Spring Boot project using Spring Initializr.**
    - Visit [https://start.spring.io/](https://start.spring.io/).
@@ -83,13 +82,11 @@ Set up a Consul server to enable dynamic service discovery and utilize its key-v
        - Spring Cloud Consul Discovery
        - Spring Boot Actuator
    - Click **Generate** to download the project zip file.
-   - Extract the downloaded zip file into a folder named `ConsulServer`.
 
 9. **Import the project into your IDE.**
 
 10. **Enable Consul Discovery.**
-    - Open the `ConsulServerApplication.java` file in the `src/main/java/com/microservices/consulserver` folder.
-    - Add the `@EnableDiscoveryClient` annotation:
+    - Add the `@EnableDiscoveryClient` annotation in `ConsulServerApplication.java`:
       ```java
       import org.springframework.boot.SpringApplication;
       import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -104,23 +101,18 @@ Set up a Consul server to enable dynamic service discovery and utilize its key-v
       }
       ```
 
-11. **Configure Consul in `application.yml`.**
-    - Create a file named `application.yml` in the `src/main/resources` folder and add:
-      ```yaml
-      spring:
-        application:
-          name: consul-server
-        cloud:
-          consul:
-            host: 127.0.0.1
-            port: 8500
+11. **Configure Consul in `application.properties`.**
+    - Create `application.properties` in the `src/main/resources` folder:
+      ```properties
+      spring.application.name=consul-server
+      spring.cloud.consul.host=127.0.0.1
+      spring.cloud.consul.port=8500
 
-      server:
-        port: 8081
+      server.port=8081
       ```
 
 12. **Add a sample REST endpoint.**
-    - Create `ConsulController.java` in the `src/main/java/com/microservices/consulserver` folder:
+    - Create `ConsulController.java`:
       ```java
       package com.microservices.consulserver;
 
@@ -149,63 +141,9 @@ Set up a Consul server to enable dynamic service discovery and utilize its key-v
 
 ---
 
-### **Part 3: Adding Another Service**
+### **Part 3: Using the KV Store**
 
-15. **Generate a new Spring Boot project for the `UserService`.**
-    - Repeat steps 8 and 9, but use:
-      - **Artifact Id**: `user-service`
-      - **Name**: `UserService`.
-
-16. **Enable Consul Discovery for `UserService`.**
-    - Add the `@EnableDiscoveryClient` annotation in the `UserServiceApplication.java` file.
-
-17. **Configure Consul for `UserService`.**
-    - Create `application.yml` in the `src/main/resources` folder and add:
-      ```yaml
-      spring:
-        application:
-          name: user-service
-        cloud:
-          consul:
-            host: 127.0.0.1
-            port: 8500
-
-      server:
-        port: 8082
-      ```
-
-18. **Add a REST endpoint for the `UserService`.**
-    - Create `UserController.java` in the `src/main/java/com/microservices/userservice` folder:
-      ```java
-      package com.microservices.userservice;
-
-      import org.springframework.web.bind.annotation.GetMapping;
-      import org.springframework.web.bind.annotation.RestController;
-
-      @RestController
-      public class UserController {
-
-          @GetMapping("/users")
-          public String getUsers() {
-              return "List of users";
-          }
-      }
-      ```
-
-19. **Run the `UserService` application.**
-    - Start the application:
-      ```bash
-      ./mvnw spring-boot:run
-      ```
-
-20. **Verify service registration in Consul.**
-    - Open the Consul UI and confirm that both `consul-server` and `user-service` are listed.
-
----
-
-### **Part 4: Exploring KV Store in Spring Boot**
-
-21. **Fetch KV store values dynamically in the `ConsulServer`.**
+15. **Fetch KV store values dynamically.**
     - Update `ConsulController` to retrieve values from the KV store:
       ```java
       package com.microservices.consulserver;
@@ -227,8 +165,8 @@ Set up a Consul server to enable dynamic service discovery and utilize its key-v
       }
       ```
 
-22. **Test KV store retrieval.**
-    - Open a browser or use Postman to access:
+16. **Test KV store retrieval.**
+    - Access:
       ```
       http://localhost:8081/greeting
       ```
@@ -236,11 +174,24 @@ Set up a Consul server to enable dynamic service discovery and utilize its key-v
 
 ---
 
+### **Part 4: Adding Another Service**
+
+17. **Repeat steps 8-14 for `UserService`.**
+    - Use:
+      - **Artifact Id**: `user-service`
+      - **Name**: `UserService`.
+    - Change the port to `8082`.
+
+18. **Verify both services in Consul.**
+    - Open the Consul UI and confirm that `consul-server` and `user-service` are listed.
+
+---
+
 ### **Optional Exercises**
 
 1. **Add environment-specific KV store keys.**
-   - Create keys like `config/sample-service/dev` and `config/sample-service/prod`.
-   - Modify `spring.profiles.active=dev` or `prod` in the application and test KV retrieval.
+   - Add keys for `config/sample-service/dev` and `config/sample-service/prod`.
+   - Set profiles and test KV retrieval.
 
-2. **Simulate a service failure in Consul.**
-   - Stop one of the services (e.g., `UserService`) and verify how Consul handles service health checks.
+2. **Simulate a service failure.**
+   - Stop one service and observe how Consul manages health checks and removes failed instances.

@@ -16,7 +16,7 @@ Learn how to securely store and dynamically reload secrets using Spring Cloud Va
    - **Windows**:
      - Unzip the downloaded file (e.g., `vault_1.14.1_windows_amd64.zip`) to a folder, such as `C:\HashiCorp\Vault`.
    - **macOS/Linux**:
-     - Extract the file to a suitable directory:
+     - Extract the file:
        ```bash
        unzip vault_<version>_<platform>.zip -d ~/HashiCorp/Vault
        ```
@@ -29,20 +29,16 @@ Learn how to securely store and dynamically reload secrets using Spring Cloud Va
        ```bash
        export PATH=$PATH:~/HashiCorp/Vault
        ```
-     - Reload the configuration:
-       ```bash
-       source ~/.bashrc
-       ```
 
 4. **Start Vault in development mode.**
-   - Open a terminal and run:
+   - Run:
      ```bash
      vault server -dev
      ```
    - Copy the displayed `Root Token` for later use.
 
 5. **Set Vault environment variables.**
-   - Set the Vault address and token:
+   - Configure Vault settings:
      - **Windows** (Command Prompt):
        ```cmd
        set VAULT_ADDR=http://127.0.0.1:8200
@@ -76,39 +72,36 @@ Learn how to securely store and dynamically reload secrets using Spring Cloud Va
 
 ### **Part 2: Setting Up the Spring Boot Application**
 
-9. **Generate a new Spring Boot project using Spring Initializr.**
+9. **Generate a new Spring Boot project for `UserService`.**
    - Visit [https://start.spring.io/](https://start.spring.io/).
    - Configure the project:
-     - **Spring Boot Version**: Select **3.4.1**.
+     - **Spring Boot Version**: `3.4.1`
      - **Group Id**: `com.microservices`
      - **Artifact Id**: `user-service`
      - **Name**: `UserService`
+     - **Package Name**: `com.microservices.userservice`
      - **Dependencies**:
        - Spring Web
        - Spring Cloud Vault Config
        - Spring Boot Actuator
-   - Click **Generate** to download the project.
+   - Extract the downloaded zip file into a folder named `UserService`.
 
 10. **Import the project into your IDE.**
+    - Open the project in your preferred IDE.
 
 11. **Add Spring Cloud Vault configurations.**
-    - Open `application.yml` and add:
-      ```yaml
-      spring:
-        application:
-          name: user-service
-        cloud:
-          vault:
-            uri: http://127.0.0.1:8200
-            token: <your-root-token>
-            kv:
-              enabled: true
-              backend: secret
-              application-name: user-service
+    - Open `src/main/resources/application.properties` and add:
+      ```properties
+      spring.application.name=user-service
+      spring.cloud.vault.uri=http://127.0.0.1:8200
+      spring.cloud.vault.token=<your-root-token>
+      spring.cloud.vault.kv.enabled=true
+      spring.cloud.vault.kv.backend=secret
+      spring.cloud.vault.kv.application-name=user-service
       ```
 
 12. **Create a configuration class to map secrets.**
-    - Create `VaultConfig.java`:
+    - Create `VaultConfig.java` in `src/main/java/com/microservices/userservice`:
       ```java
       package com.microservices.userservice;
 
@@ -140,7 +133,7 @@ Learn how to securely store and dynamically reload secrets using Spring Cloud Va
       }
       ```
 
-13. **Inject the VaultConfig class into a REST controller.**
+13. **Create a REST controller to expose secrets.**
     - Create `VaultController.java`:
       ```java
       package com.microservices.userservice;
@@ -163,15 +156,10 @@ Learn how to securely store and dynamically reload secrets using Spring Cloud Va
       ```
 
 14. **Run the application.**
-    - Use:
-      - **Windows**:
-        ```cmd
-        mvnw.cmd spring-boot:run
-        ```
-      - **macOS/Linux**:
-        ```bash
-        ./mvnw spring-boot:run
-        ```
+    - Start the application:
+      ```bash
+      ./mvnw spring-boot:run
+      ```
 
 15. **Test the `/secrets` endpoint.**
     - Access:
@@ -183,7 +171,7 @@ Learn how to securely store and dynamically reload secrets using Spring Cloud Va
 
 ### **Part 3: Adding Dynamic Updates for Secrets**
 
-16. **Add Spring Boot Actuator for dynamic refresh.**
+16. **Add Actuator for dynamic refresh.**
     - Add to `pom.xml`:
       ```xml
       <dependency>
@@ -192,44 +180,38 @@ Learn how to securely store and dynamically reload secrets using Spring Cloud Va
       </dependency>
       ```
 
-17. **Expose the refresh endpoint in Actuator.**
-    - Add to `application.yml`:
-      ```yaml
-      management:
-        endpoints:
-          web:
-            exposure:
-              include: refresh
+17. **Expose the refresh endpoint.**
+    - Add to `application.properties`:
+      ```properties
+      management.endpoints.web.exposure.include=refresh
       ```
 
-18. **Modify secrets in Vault.**
-    - Update the secret:
+18. **Update secrets in Vault.**
+    - Modify the stored secrets:
       ```bash
       vault kv put secret/user-service username=admin password=admin123
       ```
 
-19. **Trigger a refresh of the application’s configuration.**
-    - Use:
+19. **Trigger a configuration refresh.**
+    - Use the following command:
       ```bash
       curl -X POST http://localhost:8080/actuator/refresh
       ```
 
 20. **Verify the updated secrets.**
-    - Access the `/secrets` endpoint and confirm the updated values.
+    - Access `http://localhost:8080/secrets` and confirm the updated values.
 
 ---
 
 ### **Optional Exercises**
 
-1. **Integrate Vault with database properties.**
-   - Replace database credentials with Vault-managed secrets:
-     ```yaml
-     spring:
-       datasource:
-         url: jdbc:mysql://localhost:3306/userdb
-         username: ${vault.username}
-         password: ${vault.password}
+1. **Use Vault for database credentials.**
+   - Update the `application.properties` to use Vault-managed secrets for database credentials:
+     ```properties
+     spring.datasource.url=jdbc:mysql://localhost:3306/userdb
+     spring.datasource.username=${vault.username}
+     spring.datasource.password=${vault.password}
      ```
 
-2. **Test Vault with environment profiles.**
-   - Add secrets for the `prod` environment and switch between profiles dynamically.
+2. **Integrate environment profiles.**
+   - Add separate secrets for `dev` and `prod` environments and test switching between them dynamically.

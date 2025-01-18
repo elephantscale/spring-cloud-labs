@@ -11,12 +11,10 @@ Learn how to use Spring Cloud Stream to implement event-driven communication bet
 
 1. **Install Java (required for Kafka).**
    - Verify Java installation:
-     ```cmd
+     ```bash
      java -version
      ```
-     - If Java is not installed, download and install JDK 17 from [AdoptOpenJDK](https://adoptopenjdk.net/).
-   - Add Java to the system `Path` if necessary:
-     - Go to **Environment Variables** and add the JDK `bin` folder to the `Path`.
+   - If Java is not installed, download and install JDK 17 from [AdoptOpenJDK](https://adoptopenjdk.net/).
 
 2. **Download Kafka.**
    - Visit [Kafka Downloads](https://kafka.apache.org/downloads) and download the latest stable version (e.g., `kafka_2.13-3.4.0.tgz`).
@@ -62,24 +60,16 @@ Learn how to use Spring Cloud Stream to implement event-driven communication bet
        - Spring Web
        - Spring Cloud Stream
        - Spring Cloud Stream Kafka Binder
-   - Extract the downloaded zip file into a folder named `OrderService`.
+   - Extract the zip file into a folder named `OrderService`.
 
 9. **Import the project into your IDE.**
 
-10. **Configure Spring Cloud Stream for Kafka in `application.yml`.**
-    - Create `application.yml` in `src/main/resources` and add:
-      ```yaml
-      spring:
-        application:
-          name: order-service
-        cloud:
-          stream:
-            kafka:
-              binder:
-                brokers: localhost:9092
-            bindings:
-              output:
-                destination: order-events
+10. **Configure Spring Cloud Stream for Kafka in `application.properties`.**
+    - Create `application.properties` in `src/main/resources`:
+      ```properties
+      spring.application.name=order-service
+      spring.cloud.stream.kafka.binder.brokers=localhost:9092
+      spring.cloud.stream.bindings.output.destination=order-events
       ```
 
 11. **Create an event model.**
@@ -187,20 +177,12 @@ Learn how to use Spring Cloud Stream to implement event-driven communication bet
 
 17. **Import the project into your IDE.**
 
-18. **Configure Spring Cloud Stream for Kafka in `application.yml`.**
-    - Create `application.yml` in `src/main/resources` and add:
-      ```yaml
-      spring:
-        application:
-          name: notification-service
-        cloud:
-          stream:
-            kafka:
-              binder:
-                brokers: localhost:9092
-            bindings:
-              input:
-                destination: order-events
+18. **Configure Spring Cloud Stream for Kafka in `application.properties`.**
+    - Create `application.properties` in `src/main/resources`:
+      ```properties
+      spring.application.name=notification-service
+      spring.cloud.stream.kafka.binder.brokers=localhost:9092
+      spring.cloud.stream.bindings.input.destination=order-events
       ```
 
 19. **Create a message consumer.**
@@ -247,3 +229,5 @@ Learn how to use Spring Cloud Stream to implement event-driven communication bet
 
 3. **Simulate scaling.**
    - Deploy multiple instances of `NotificationService` and observe message distribution.
+
+---

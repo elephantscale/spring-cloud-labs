@@ -21,20 +21,16 @@ Learn how to implement resilience patterns, including circuit breakers, retries,
        - Spring Boot Actuator
        - Resilience4j Spring Boot Starter
    - Click **Generate** to download the project zip file.
-   - Extract the downloaded zip file into a folder named `UserService`.
+   - Extract the zip file into a folder named `UserService`.
 
 2. **Import the project into your IDE.**
 
-3. **Add Resilience4j configurations to `application.yml`.**
-   - Create `application.yml` in `src/main/resources` and add:
-     ```yaml
-     resilience4j:
-       circuitbreaker:
-         instances:
-           user-service:
-             failure-rate-threshold: 50
-             sliding-window-size: 5
-             wait-duration-in-open-state: 5s
+3. **Add Resilience4j configurations to `application.properties`.**
+   - Create `application.properties` in `src/main/resources` and add:
+     ```properties
+     resilience4j.circuitbreaker.instances.user-service.failure-rate-threshold=50
+     resilience4j.circuitbreaker.instances.user-service.sliding-window-size=5
+     resilience4j.circuitbreaker.instances.user-service.wait-duration-in-open-state=5s
      ```
 
 4. **Add a REST controller to simulate a user endpoint.**
@@ -83,15 +79,11 @@ Learn how to implement resilience patterns, including circuit breakers, retries,
 
 ### **Part 2: Adding Retry Mechanism**
 
-7. **Configure retries in `application.yml`.**
+7. **Configure retries in `application.properties`.**
    - Add:
-     ```yaml
-     resilience4j:
-       retry:
-         instances:
-           user-service:
-             max-attempts: 3
-             wait-duration: 500ms
+     ```properties
+     resilience4j.retry.instances.user-service.max-attempts=3
+     resilience4j.retry.instances.user-service.wait-duration=500ms
      ```
 
 8. **Add retry to the `UserController`.**
@@ -116,15 +108,11 @@ Learn how to implement resilience patterns, including circuit breakers, retries,
 
 ### **Part 3: Adding Rate Limiting**
 
-10. **Configure rate limiting in `application.yml`.**
+10. **Configure rate limiting in `application.properties`.**
     - Add:
-      ```yaml
-      resilience4j:
-        ratelimiter:
-          instances:
-            user-service:
-              limit-for-period: 2
-              limit-refresh-period: 10s
+      ```properties
+      resilience4j.ratelimiter.instances.user-service.limit-for-period=2
+      resilience4j.ratelimiter.instances.user-service.limit-refresh-period=10s
       ```
 
 11. **Add rate limiting to the `UserController`.**
@@ -150,15 +138,11 @@ Learn how to implement resilience patterns, including circuit breakers, retries,
 
 ### **Part 4: Adding Bulkhead Isolation**
 
-13. **Configure bulkhead isolation in `application.yml`.**
+13. **Configure bulkhead isolation in `application.properties`.**
     - Add:
-      ```yaml
-      resilience4j:
-        bulkhead:
-          instances:
-            user-service:
-              max-concurrent-calls: 2
-              max-wait-duration: 0
+      ```properties
+      resilience4j.bulkhead.instances.user-service.max-concurrent-calls=2
+      resilience4j.bulkhead.instances.user-service.max-wait-duration=0
       ```
 
 14. **Add bulkhead isolation to the `UserController`.**
@@ -186,13 +170,9 @@ Learn how to implement resilience patterns, including circuit breakers, retries,
 ### **Part 5: Monitoring with Resilience4j**
 
 16. **Expose Actuator endpoints.**
-    - Add to `application.yml`:
-      ```yaml
-      management:
-        endpoints:
-          web:
-            exposure:
-              include: health,metrics
+    - Add to `application.properties`:
+      ```properties
+      management.endpoints.web.exposure.include=health,metrics
       ```
 
 17. **Access Resilience4j metrics.**
@@ -217,3 +197,5 @@ Learn how to implement resilience patterns, including circuit breakers, retries,
 
 3. **Test Bulkhead Under Stress.**
    - Simulate high concurrency to verify isolation limits.
+
+---

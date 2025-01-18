@@ -59,18 +59,13 @@ Learn how to integrate Spring Cloud Sleuth with Zipkin to collect and visualize 
 6. **Import the `UserService` project into your IDE.**
 
 7. **Configure `UserService` to send traces to Zipkin.**
-   - Add the following properties in `src/main/resources/application.yml`:
-     ```yaml
-     server:
-       port: 8081
-     spring:
-       application:
-         name: user-service
-       zipkin:
-         base-url: http://localhost:9411
-       sleuth:
-         sampler:
-           probability: 1.0
+   - Add the following properties in `src/main/resources/application.properties`:
+     ```properties
+     server.port=8081
+
+     spring.application.name=user-service
+     spring.zipkin.base-url=http://localhost:9411
+     spring.sleuth.sampler.probability=1.0
      ```
 
 8. **Create a REST controller in `UserService`.**
@@ -117,18 +112,13 @@ Learn how to integrate Spring Cloud Sleuth with Zipkin to collect and visualize 
 12. **Import the `OrderService` project into your IDE.**
 
 13. **Configure `OrderService` to send traces to Zipkin.**
-    - Add the following properties in `src/main/resources/application.yml`:
-      ```yaml
-      server:
-        port: 8082
-      spring:
-        application:
-          name: order-service
-        zipkin:
-          base-url: http://localhost:9411
-        sleuth:
-          sampler:
-            probability: 1.0
+    - Add the following properties in `src/main/resources/application.properties`:
+      ```properties
+      server.port=8082
+
+      spring.application.name=order-service
+      spring.zipkin.base-url=http://localhost:9411
+      spring.sleuth.sampler.probability=1.0
       ```
 
 14. **Create a REST controller in `OrderService`.**

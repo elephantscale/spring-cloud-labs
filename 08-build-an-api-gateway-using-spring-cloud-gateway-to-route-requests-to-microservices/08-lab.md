@@ -20,12 +20,12 @@ Learn how to build an API Gateway using Spring Cloud Gateway. Route requests to 
        - Spring Cloud Gateway
        - Spring Boot Actuator
    - Click **Generate** to download the project zip file.
-   - Extract the downloaded zip file into a folder named `ApiGateway`.
+   - Extract the zip file into a folder named `ApiGateway`.
 
 2. **Import the project into your IDE.**
 
 3. **Enable Gateway functionality in `ApiGatewayApplication`.**
-   - Open `ApiGatewayApplication.java` in the `src/main/java/com/microservices/apigateway` folder and ensure it contains:
+   - Open `ApiGatewayApplication.java` in `src/main/java/com/microservices/apigateway`:
      ```java
      package com.microservices.apigateway;
 
@@ -40,24 +40,18 @@ Learn how to build an API Gateway using Spring Cloud Gateway. Route requests to 
      }
      ```
 
-4. **Configure basic routing in `application.yml`.**
-   - Create `application.yml` in `src/main/resources` and add:
-     ```yaml
-     server:
-       port: 8080
+4. **Configure basic routing in `application.properties`.**
+   - Create `application.properties` in `src/main/resources` and add:
+     ```properties
+     server.port=8080
 
-     spring:
-       cloud:
-         gateway:
-           routes:
-             - id: user-service
-               uri: http://localhost:8081
-               predicates:
-                 - Path=/users/**
-             - id: product-service
-               uri: http://localhost:8082
-               predicates:
-                 - Path=/products/**
+     spring.cloud.gateway.routes[0].id=user-service
+     spring.cloud.gateway.routes[0].uri=http://localhost:8081
+     spring.cloud.gateway.routes[0].predicates[0]=Path=/users/**
+
+     spring.cloud.gateway.routes[1].id=product-service
+     spring.cloud.gateway.routes[1].uri=http://localhost:8082
+     spring.cloud.gateway.routes[1].predicates[0]=Path=/products/**
      ```
 
 5. **Run the API Gateway application.**
@@ -68,7 +62,7 @@ Learn how to build an API Gateway using Spring Cloud Gateway. Route requests to 
 
 6. **Test basic routing.**
    - Start `UserService` (port `8081`) and `ProductService` (port `8082`).
-   - Use Postman or a browser to test:
+   - Test routes:
      - `http://localhost:8080/users` routes to `UserService`.
      - `http://localhost:8080/products` routes to `ProductService`.
 
@@ -77,7 +71,7 @@ Learn how to build an API Gateway using Spring Cloud Gateway. Route requests to 
 ### **Part 2: Setting Up Microservices**
 
 7. **Create `UserService`.**
-   - Generate a new Spring Boot project using Spring Initializr with:
+   - Generate a Spring Boot project with:
      - **Artifact Id**: `user-service`
      - **Dependencies**: Spring Web
    - Add `UserController`:
@@ -98,7 +92,7 @@ Learn how to build an API Gateway using Spring Cloud Gateway. Route requests to 
      ```
 
 8. **Create `ProductService`.**
-   - Generate another Spring Boot project using Spring Initializr with:
+   - Generate another Spring Boot project with:
      - **Artifact Id**: `product-service`
      - **Dependencies**: Spring Web
    - Add `ProductController`:
@@ -119,14 +113,12 @@ Learn how to build an API Gateway using Spring Cloud Gateway. Route requests to 
      ```
 
 9. **Run `UserService` and `ProductService`.**
-   - Configure ports in their respective `application.yml` files:
-     ```yaml
-     server:
-       port: 8081  # For UserService
+   - Set ports in their `application.properties` files:
+     ```properties
+     server.port=8081
      ```
-     ```yaml
-     server:
-       port: 8082  # For ProductService
+     ```properties
+     server.port=8082
      ```
    - Verify endpoints:
      - `http://localhost:8081/users`
@@ -166,29 +158,23 @@ Learn how to build an API Gateway using Spring Cloud Gateway. Route requests to 
       ```
 
 11. **Test the global logging filter.**
-    - Access `/users` or `/products` and verify request/response logs in the console.
+    - Access `/users` or `/products` and verify logs in the console.
 
 ---
 
 ### **Part 4: Customizing Routes**
 
 12. **Add a route with custom headers.**
-    - Update `application.yml`:
-      ```yaml
-      spring:
-        cloud:
-          gateway:
-            routes:
-              - id: custom-route
-                uri: http://httpbin.org:80
-                predicates:
-                  - Path=/custom/**
-                filters:
-                  - AddRequestHeader=X-Custom-Header, CustomValue
+    - Update `application.properties`:
+      ```properties
+      spring.cloud.gateway.routes[2].id=custom-route
+      spring.cloud.gateway.routes[2].uri=http://httpbin.org:80
+      spring.cloud.gateway.routes[2].predicates[0]=Path=/custom/**
+      spring.cloud.gateway.routes[2].filters[0]=AddRequestHeader=X-Custom-Header, CustomValue
       ```
 
 13. **Test the custom route.**
-    - Access `http://localhost:8080/custom` and verify the custom header in the request.
+    - Access `http://localhost:8080/custom` and verify the header is added.
 
 14. **Add a rate limiter.**
     - Add the `spring-boot-starter-data-redis` dependency in `pom.xml`:
@@ -198,24 +184,16 @@ Learn how to build an API Gateway using Spring Cloud Gateway. Route requests to 
           <artifactId>spring-boot-starter-data-redis</artifactId>
       </dependency>
       ```
-    - Configure rate limiting in `application.yml`:
-      ```yaml
-      spring:
-        cloud:
-          gateway:
-            routes:
-              - id: rate-limited-route
-                uri: http://httpbin.org:80
-                predicates:
-                  - Path=/rate-limited/**
-                filters:
-                  - RequestRateLimiter:
-                      redis-rate-limiter.replenishRate=2
-                      redis-rate-limiter.burstCapacity=2
+    - Configure rate limiting in `application.properties`:
+      ```properties
+      spring.cloud.gateway.routes[3].id=rate-limited-route
+      spring.cloud.gateway.routes[3].uri=http://httpbin.org:80
+      spring.cloud.gateway.routes[3].predicates[0]=Path=/rate-limited/**
+      spring.cloud.gateway.routes[3].filters[0]=RequestRateLimiter=redis-rate-limiter.replenishRate=2, redis-rate-limiter.burstCapacity=2
       ```
 
 15. **Test the rate limiter.**
-    - Access `/rate-limited` multiple times. Verify requests are limited to 2 per burst.
+    - Access `/rate-limited` multiple times and verify only 2 requests are allowed per burst.
 
 ---
 
@@ -231,13 +209,9 @@ Learn how to build an API Gateway using Spring Cloud Gateway. Route requests to 
       ```
 
 17. **Expose management endpoints.**
-    - Add to `application.yml`:
-      ```yaml
-      management:
-        endpoints:
-          web:
-            exposure:
-              include: routes,filters
+    - Add to `application.properties`:
+      ```properties
+      management.endpoints.web.exposure.include=routes,filters
       ```
 
 18. **View active routes and filters.**

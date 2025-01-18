@@ -25,7 +25,7 @@ Learn how to configure routing rules and implement custom filters in Spring Clou
 2. **Import the project into your IDE.**
 
 3. **Enable Spring Cloud Gateway in `ApiGatewayApplication`.**
-   - Open `ApiGatewayApplication.java` in the `src/main/java/com/microservices/apigateway` folder:
+   - Open `ApiGatewayApplication.java` in `src/main/java/com/microservices/apigateway`:
      ```java
      package com.microservices.apigateway;
 
@@ -40,24 +40,18 @@ Learn how to configure routing rules and implement custom filters in Spring Clou
      }
      ```
 
-4. **Configure default routes in `application.yml`.**
-   - Create `application.yml` in `src/main/resources` and add:
-     ```yaml
-     server:
-       port: 8080
+4. **Configure default routes in `application.properties`.**
+   - Create `application.properties` in `src/main/resources` and add:
+     ```properties
+     server.port=8080
 
-     spring:
-       cloud:
-         gateway:
-           routes:
-             - id: user-service
-               uri: http://localhost:8081
-               predicates:
-                 - Path=/users/**
-             - id: product-service
-               uri: http://localhost:8082
-               predicates:
-                 - Path=/products/**
+     spring.cloud.gateway.routes[0].id=user-service
+     spring.cloud.gateway.routes[0].uri=http://localhost:8081
+     spring.cloud.gateway.routes[0].predicates[0]=Path=/users/**
+
+     spring.cloud.gateway.routes[1].id=product-service
+     spring.cloud.gateway.routes[1].uri=http://localhost:8082
+     spring.cloud.gateway.routes[1].predicates[0]=Path=/products/**
      ```
 
 5. **Run the `ApiGateway` application.**
@@ -112,18 +106,9 @@ Learn how to configure routing rules and implement custom filters in Spring Clou
 ### **Part 3: Implementing Route-Specific Filters**
 
 9. **Add a request header filter.**
-   - Update `application.yml` for `user-service`:
-     ```yaml
-     spring:
-       cloud:
-         gateway:
-           routes:
-             - id: user-service
-               uri: http://localhost:8081
-               predicates:
-                 - Path=/users/**
-               filters:
-                 - AddRequestHeader=X-User-Header, UserServiceHeader
+   - Update `application.properties` for `user-service`:
+     ```properties
+     spring.cloud.gateway.routes[0].filters[0]=AddRequestHeader=X-User-Header, UserServiceHeader
      ```
 
 10. **Verify the request header filter.**
@@ -153,18 +138,9 @@ Learn how to configure routing rules and implement custom filters in Spring Clou
       ```
 
 12. **Apply the custom response filter.**
-    - Update `application.yml` for `product-service`:
-      ```yaml
-      spring:
-        cloud:
-          gateway:
-            routes:
-              - id: product-service
-                uri: http://localhost:8082
-                predicates:
-                  - Path=/products/**
-                filters:
-                  - CustomResponseFilter
+    - Update `application.properties` for `product-service`:
+      ```properties
+      spring.cloud.gateway.routes[1].filters[0]=CustomResponseFilter
       ```
 
 13. **Test the response modification filter.**
@@ -175,22 +151,18 @@ Learn how to configure routing rules and implement custom filters in Spring Clou
 ### **Part 4: Adding Predicate Rules**
 
 14. **Add a query parameter predicate.**
-    - Update `application.yml` for `user-service`:
-      ```yaml
-      predicates:
-        - Path=/users/**
-        - Query=username
+    - Update `application.properties` for `user-service`:
+      ```properties
+      spring.cloud.gateway.routes[0].predicates[1]=Query=username
       ```
 
 15. **Test the query parameter predicate.**
     - Access `http://localhost:8080/users?username=test` and confirm the route matches only when the `username` parameter is present.
 
 16. **Add a time-based route predicate.**
-    - Update `application.yml` for `product-service`:
-      ```yaml
-      predicates:
-        - Path=/products/**
-        - After=2024-01-01T00:00:00Z
+    - Update `application.properties` for `product-service`:
+      ```properties
+      spring.cloud.gateway.routes[1].predicates[1]=After=2024-01-01T00:00:00Z
       ```
 
 17. **Test the time-based predicate.**
@@ -201,7 +173,7 @@ Learn how to configure routing rules and implement custom filters in Spring Clou
 ### **Part 5: Monitoring and Management**
 
 18. **Enable Spring Boot Actuator.**
-    - Ensure the following dependency is added in `pom.xml`:
+    - Add the following dependency in `pom.xml`:
       ```xml
       <dependency>
           <groupId>org.springframework.boot</groupId>
@@ -210,13 +182,9 @@ Learn how to configure routing rules and implement custom filters in Spring Clou
       ```
 
 19. **Expose management endpoints.**
-    - Add to `application.yml`:
-      ```yaml
-      management:
-        endpoints:
-          web:
-            exposure:
-              include: routes,filters
+    - Add to `application.properties`:
+      ```properties
+      management.endpoints.web.exposure.include=routes,filters
       ```
 
 20. **View active routes.**

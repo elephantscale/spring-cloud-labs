@@ -1,7 +1,7 @@
 # **Lab 6: Implement Circuit Breakers Using Resilience4j to Manage Service Failures**
 
 ## **Objective**
-Learn how to implement circuit breakers for fault tolerance using Resilience4j (the recommended replacement for Hystrix). Configure fallback methods to handle service failures gracefully and monitor service health.
+Learn how to implement circuit breakers for fault tolerance using Resilience4j. Configure fallback methods to handle service failures gracefully and monitor service health.
 
 ---
 
@@ -21,13 +21,13 @@ Learn how to implement circuit breakers for fault tolerance using Resilience4j (
        - Spring Boot Actuator
        - Resilience4j Spring Boot Starter
    - Click **Generate** to download the project zip file.
-   - Extract the downloaded zip file into a folder named `UserService`.
+   - Extract the zip file into a folder named `UserService`.
 
 2. **Import the project into your IDE.**
-   - Open your IDE (e.g., IntelliJ, Eclipse, or VS Code) and import the `UserService` project as a Maven project.
+   - Import `UserService` as a Maven project.
 
 3. **Add a REST controller to simulate a user endpoint.**
-   - Create a new file `UserController.java` in the `src/main/java/com/microservices/userservice` folder:
+   - Create `UserController.java` in `src/main/java/com/microservices/userservice`:
      ```java
      package com.microservices.userservice;
 
@@ -51,22 +51,22 @@ Learn how to implement circuit breakers for fault tolerance using Resilience4j (
      ```
 
 5. **Test the `/users` endpoint.**
-   - Open a browser or use Postman to access:
+   - Access:
      ```
      http://localhost:8080/users
      ```
-   - Verify that the response is `"List of users"`.
+   - Verify the response: `"List of users"`.
 
 ---
 
 ### **Part 2: Adding a Circuit Breaker**
 
 6. **Simulate a dependent service.**
-   - Generate another Spring Boot project called `OrderService` with the following configuration:
+   - Generate another Spring Boot project called `OrderService`:
      - **Artifact Id**: `order-service`
      - **Dependencies**:
        - Spring Web
-   - Add a REST endpoint in `OrderService` to simulate a dependency:
+   - Add `OrderController.java` in `src/main/java/com/microservices/orderservice`:
      ```java
      package com.microservices.orderservice;
 
@@ -84,14 +84,13 @@ Learn how to implement circuit breakers for fault tolerance using Resilience4j (
      ```
 
 7. **Run the `OrderService` application.**
-   - Start `OrderService` on port `8081` by adding the following in `src/main/resources/application.yml`:
-     ```yaml
-     server:
-       port: 8081
+   - Start `OrderService` on port `8081`. Add `application.properties`:
+     ```properties
+     server.port=8081
      ```
 
-8. **Configure the `UserService` to call `OrderService`.**
-   - Add a `RestTemplate` bean in the `UserServiceApplication.java` file:
+8. **Configure `UserService` to call `OrderService`.**
+   - Add a `RestTemplate` bean in `UserServiceApplication.java`:
      ```java
      import org.springframework.boot.SpringApplication;
      import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -111,8 +110,8 @@ Learn how to implement circuit breakers for fault tolerance using Resilience4j (
      }
      ```
 
-9. **Modify the `UserController` to call `OrderService`.**
-   - Update `UserController` to include a `/user-orders` endpoint with a circuit breaker:
+9. **Modify `UserController` to include a circuit breaker.**
+   - Update `UserController.java`:
      ```java
      package com.microservices.userservice;
 
@@ -142,19 +141,11 @@ Learn how to implement circuit breakers for fault tolerance using Resilience4j (
      ```
 
 10. **Add Resilience4j configurations.**
-    - Create `application.yml` in `src/main/resources`:
-      ```yaml
-      resilience4j:
-        circuitbreaker:
-          configs:
-            default:
-              registerHealthIndicator: true
-              slidingWindowSize: 10
-              failureRateThreshold: 50
-              waitDurationInOpenState: 10s
-          instances:
-            orderService:
-              base-config: default
+    - Create `application.properties`:
+      ```properties
+      resilience4j.circuitbreaker.instances.orderService.slidingWindowSize=10
+      resilience4j.circuitbreaker.instances.orderService.failureRateThreshold=50
+      resilience4j.circuitbreaker.instances.orderService.waitDurationInOpenState=10s
       ```
 
 11. **Test the `/user-orders` endpoint.**
@@ -163,29 +154,25 @@ Learn how to implement circuit breakers for fault tolerance using Resilience4j (
       ```
       http://localhost:8080/user-orders
       ```
-    - Verify that it returns `"User Orders: List of orders"`.
+    - Verify the response: `"User Orders: List of orders"`.
 
 12. **Simulate a failure in `OrderService`.**
-    - Stop the `OrderService` application.
-    - Re-access the `/user-orders` endpoint.
-    - Verify that the fallback response `"Fallback: No orders available"` is returned.
+    - Stop `OrderService`.
+    - Re-access `/user-orders`.
+    - Verify the fallback response: `"Fallback: No orders available"`.
 
 ---
 
 ### **Part 3: Monitoring Circuit Breakers**
 
 13. **Add Spring Boot Actuator configurations.**
-    - Add the following to `application.yml`:
-      ```yaml
-      management:
-        endpoints:
-          web:
-            exposure:
-              include: resilience4j.circuitbreakers
+    - Update `application.properties`:
+      ```properties
+      management.endpoints.web.exposure.include=resilience4j.circuitbreakers
       ```
 
-14. **Monitor circuit breaker status.**
-    - Access the circuit breaker metrics:
+14. **Monitor circuit breaker metrics.**
+    - Access:
       ```
       http://localhost:8080/actuator/resilience4j/circuitbreakers
       ```
@@ -196,13 +183,14 @@ Learn how to implement circuit breakers for fault tolerance using Resilience4j (
 ### **Optional Exercises**
 
 1. **Add more fallback scenarios.**
-   - Introduce additional dependent endpoints in `OrderService` and create corresponding fallbacks in `UserService`.
+   - Add another endpoint in `OrderService` (e.g., `/order-details`) and configure a fallback in `UserService`.
 
-2. **Configure timeout thresholds.**
-   - Add custom timeout configurations in `application.yml` and test:
-     ```yaml
-     resilience4j:
-       timeout:
-         default:
-           timeoutDuration: 2s
+2. **Test timeout configurations.**
+   - Add custom timeout settings in `application.properties`:
+     ```properties
+     resilience4j.timeout.instances.orderService.timeoutDuration=2s
      ```
+   - Simulate long response times in `OrderService` and verify the fallback behavior.
+
+3. **Visualize circuit breaker health with external tools.**
+   - Integrate Resilience4j with Prometheus and Grafana for detailed monitoring.

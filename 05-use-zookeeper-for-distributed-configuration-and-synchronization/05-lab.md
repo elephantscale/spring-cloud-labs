@@ -107,18 +107,12 @@ Set up Apache Zookeeper as a configuration and synchronization server. Learn how
       }
       ```
 
-11. **Configure Zookeeper in `application.yml`.**
-    - Create `application.yml` in `src/main/resources` and add:
-      ```yaml
-      spring:
-        application:
-          name: zookeeper-service
-        cloud:
-          zookeeper:
-            connect-string: localhost:2181
-
-      server:
-        port: 8083
+11. **Configure Zookeeper in `application.properties`.**
+    - Create `application.properties` in `src/main/resources` and add:
+      ```properties
+      spring.application.name=zookeeper-service
+      spring.cloud.zookeeper.connect-string=localhost:2181
+      server.port=8083
       ```
 
 12. **Add a REST endpoint to the service.**
@@ -165,17 +159,11 @@ Set up Apache Zookeeper as a configuration and synchronization server. Learn how
     - Add the `@EnableDiscoveryClient` annotation in `ProductServiceApplication.java`.
 
 17. **Configure Zookeeper for `ProductService`.**
-    - Create `application.yml` in `src/main/resources` and add:
-      ```yaml
-      spring:
-        application:
-          name: product-service
-        cloud:
-          zookeeper:
-            connect-string: localhost:2181
-
-      server:
-        port: 8084
+    - Create `application.properties` in `src/main/resources` and add:
+      ```properties
+      spring.application.name=product-service
+      spring.cloud.zookeeper.connect-string=localhost:2181
+      server.port=8084
       ```
 
 18. **Add a REST endpoint for `ProductService`.**

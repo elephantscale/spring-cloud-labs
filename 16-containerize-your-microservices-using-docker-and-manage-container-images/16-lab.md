@@ -10,7 +10,7 @@ Learn how to containerize Spring Boot microservices using Docker. Build Docker i
 ### **Part 1: Installing Docker**
 
 1. **Download Docker Desktop.**
-   - Visit [Docker Desktop](https://www.docker.com/products/docker-desktop) and download the installer for your operating system (Windows, macOS, or Linux).
+   - Visit [Docker Desktop](https://www.docker.com/products/docker-desktop) and download the installer for your operating system.
 
 2. **Install Docker Desktop.**
    - Run the installer and follow the setup instructions.
@@ -31,7 +31,7 @@ Learn how to containerize Spring Boot microservices using Docker. Build Docker i
 ### **Part 2: Preparing the Microservices**
 
 5. **Ensure `UserService` and `OrderService` are ready.**
-   - Make sure the microservices (`UserService` and `OrderService`) are functional and available as standalone Spring Boot projects.
+   - Confirm that both microservices are functional as standalone Spring Boot projects.
 
 6. **Add a Dockerfile to `UserService`.**
    - Create a `Dockerfile` in the root directory of the `UserService` project:
@@ -64,13 +64,13 @@ Learn how to containerize Spring Boot microservices using Docker. Build Docker i
 ### **Part 3: Building Docker Images**
 
 9. **Build the Docker image for `UserService`.**
-    - Run the following command from the `UserService` directory:
+    - From the `UserService` directory, run:
       ```bash
       docker build -t user-service:1.0 .
       ```
 
 10. **Build the Docker image for `OrderService`.**
-    - Run the following command from the `OrderService` directory:
+    - From the `OrderService` directory, run:
       ```bash
       docker build -t order-service:1.0 .
       ```
@@ -105,11 +105,11 @@ Learn how to containerize Spring Boot microservices using Docker. Build Docker i
 
 15. **Test the microservices.**
     - Access `UserService`:
-      ```
+      ```bash
       http://localhost:8081/users
       ```
     - Access `OrderService`:
-      ```
+      ```bash
       http://localhost:8082/orders
       ```
 
@@ -176,11 +176,11 @@ Learn how to containerize Spring Boot microservices using Docker. Build Docker i
       ```
 
 23. **Verify images on Docker Hub.**
-    - Open Docker Hub in a browser and confirm that both images are available in your repository.
+    - Open Docker Hub in a browser and confirm both images are available in your repository.
 
 ---
 
-### **Optional Exercises (20 mins)**
+### **Optional Exercises**
 
 1. **Docker Compose for Multi-Container Deployment.**
    - Write a `docker-compose.yml` file to deploy both `UserService` and `OrderService` together.
@@ -190,5 +190,3 @@ Learn how to containerize Spring Boot microservices using Docker. Build Docker i
 
 3. **Integrate with CI/CD.**
    - Configure Jenkins to build and push Docker images automatically after successful builds.
-
----

@@ -22,7 +22,7 @@ Learn how to use Spring Cloud Bus to enable event-based messaging between micros
        - Spring Cloud Bus
        - Spring Cloud Stream Kafka
    - Click **Generate** to download the project zip file.
-   - Extract the downloaded zip file into a folder named `ConfigServer`.
+   - Extract the zip file into a folder named `ConfigServer`.
 
 2. **Import the project into your IDE.**
 
@@ -42,30 +42,18 @@ Learn how to use Spring Cloud Bus to enable event-based messaging between micros
      }
      ```
 
-4. **Configure the Config Server in `application.yml`.**
-   - Create `application.yml` in `src/main/resources` and add the following:
-     ```yaml
-     server:
-       port: 8888
-
-     spring:
-       application:
-         name: config-server
-       cloud:
-         config:
-           server:
-             git:
-               uri: https://github.com/<your-username>/config-repo
-         bus:
-           enabled: true
-         stream:
-           kafka:
-             binder:
-               brokers: localhost:9092
+4. **Configure the Config Server in `application.properties`.**
+   - Create `application.properties` in `src/main/resources` and add:
+     ```properties
+     server.port=8888
+     spring.application.name=config-server
+     spring.cloud.config.server.git.uri=https://github.com/<your-username>/config-repo
+     spring.cloud.bus.enabled=true
+     spring.cloud.stream.kafka.binder.brokers=localhost:9092
      ```
 
 5. **Run the Config Server.**
-   - Start the application using the following command:
+   - Start the application:
      ```bash
      ./mvnw spring-boot:run
      ```
@@ -91,7 +79,7 @@ Learn how to use Spring Cloud Bus to enable event-based messaging between micros
      ```
 
 9. **Verify Kafka is running.**
-   - List Kafka topics using the following command:
+   - List Kafka topics:
      ```bash
      ./bin/kafka-topics.sh --list --bootstrap-server localhost:9092
      ```
@@ -114,27 +102,17 @@ Learn how to use Spring Cloud Bus to enable event-based messaging between micros
 11. **Import the `UserService` project into your IDE.**
 
 12. **Configure the `UserService` to use the Config Server.**
-    - Create `application.yml` in `src/main/resources` and add:
-      ```yaml
-      spring:
-        application:
-          name: user-service
-        cloud:
-          config:
-            uri: http://localhost:8888
-          bus:
-            enabled: true
-          stream:
-            kafka:
-              binder:
-                brokers: localhost:9092
-
-      server:
-        port: 8081
+    - Create `application.properties` in `src/main/resources` and add:
+      ```properties
+      server.port=8081
+      spring.application.name=user-service
+      spring.cloud.config.uri=http://localhost:8888
+      spring.cloud.bus.enabled=true
+      spring.cloud.stream.kafka.binder.brokers=localhost:9092
       ```
 
 13. **Create a REST controller to display configuration values.**
-    - Create a new file `ConfigController.java` in the `src/main/java/com/microservices/userservice` folder:
+    - Create `ConfigController.java` in `src/main/java/com/microservices/userservice`:
       ```java
       package com.microservices.userservice;
 
@@ -156,14 +134,14 @@ Learn how to use Spring Cloud Bus to enable event-based messaging between micros
       ```
 
 14. **Run the `UserService` application.**
-    - Start the application using:
+    - Start the application:
       ```bash
       ./mvnw spring-boot:run
       ```
 
 15. **Verify configuration retrieval.**
-    - Access the following endpoint:
-      ```
+    - Access:
+      ```bash
       http://localhost:8081/message
       ```
     - Confirm the `message` property from the Config Server is displayed.
@@ -173,7 +151,7 @@ Learn how to use Spring Cloud Bus to enable event-based messaging between micros
 ### **Part 4: Testing Event-Based Messaging**
 
 16. **Update the configuration file in the Git repository.**
-    - Modify the `message` property in `application.yml`:
+    - Modify the `message` property in the configuration:
       ```yaml
       message: "Updated message from Config Server"
       ```
@@ -185,14 +163,14 @@ Learn how to use Spring Cloud Bus to enable event-based messaging between micros
       ```
 
 17. **Trigger a refresh event.**
-    - Use the following POST request to refresh:
+    - Use a POST request to trigger the refresh:
       ```bash
       curl -X POST http://localhost:8888/actuator/bus-refresh
       ```
 
 18. **Verify the updated configuration in `UserService`.**
-    - Access the following endpoint:
-      ```
+    - Access:
+      ```bash
       http://localhost:8081/message
       ```
     - Confirm the updated `message` property is displayed.
@@ -208,7 +186,7 @@ Learn how to use Spring Cloud Bus to enable event-based messaging between micros
 
 20. **Verify configuration sync between services.**
     - Trigger another refresh event using `/actuator/bus-refresh`.
-    - Confirm that both `UserService` and `ProductService` reflect the updated configuration.
+    - Confirm both `UserService` and `ProductService` reflect the updated configuration.
 
 ---
 

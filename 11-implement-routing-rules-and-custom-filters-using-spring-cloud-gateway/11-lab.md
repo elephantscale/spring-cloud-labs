@@ -1,7 +1,7 @@
-# **Lab 11: Implement Routing Rules and Custom Filters Using Spring Cloud Gateway**
+# **Lab 11: Implement Routing Rules and Custom Filters Using Spring Cloud Gateway (Spring Boot 3.4.1)**
 
 ## **Objective**
-Learn how to configure routing rules and implement custom filters in Spring Cloud Gateway to handle request manipulation and response processing.
+Learn how to configure **Spring Cloud Gateway** (on **Spring Boot 3.4.1**) to route requests to various microservices. Implement custom filters to intercept requests/responses, utilize route predicates for dynamic routing, and monitor the gateway with actuator endpoints.
 
 ---
 
@@ -9,23 +9,22 @@ Learn how to configure routing rules and implement custom filters in Spring Clou
 
 ### **Part 1: Setting Up the API Gateway**
 
-1. **Generate a new Spring Boot project using Spring Initializr.**
+1. **Generate a new Spring Boot project for `ApiGateway`.**
    - Visit [https://start.spring.io/](https://start.spring.io/).
-   - Configure the project:
-     - **Spring Boot Version**: Select **3.4.1**.
+   - Configure:
+     - **Spring Boot Version**: **3.4.1**
      - **Group Id**: `com.microservices`
      - **Artifact Id**: `api-gateway`
      - **Name**: `ApiGateway`
      - **Dependencies**:
        - Spring Cloud Gateway
        - Spring Boot Actuator
-   - Click **Generate** to download the project zip file.
-   - Extract the downloaded zip file into a folder named `ApiGateway`.
+   - Extract into `ApiGateway`.
 
 2. **Import the project into your IDE.**
 
-3. **Enable Spring Cloud Gateway in `ApiGatewayApplication`.**
-   - Open `ApiGatewayApplication.java` in `src/main/java/com/microservices/apigateway`:
+3. **Enable Spring Cloud Gateway.**
+   - In `ApiGatewayApplication.java` (e.g., `src/main/java/com/microservices/apigateway`):
      ```java
      package com.microservices.apigateway;
 
@@ -41,7 +40,7 @@ Learn how to configure routing rules and implement custom filters in Spring Clou
      ```
 
 4. **Configure default routes in `application.properties`.**
-   - Create `application.properties` in `src/main/resources` and add:
+   - In `src/main/resources/application.properties`:
      ```properties
      server.port=8080
 
@@ -55,67 +54,122 @@ Learn how to configure routing rules and implement custom filters in Spring Clou
      ```
 
 5. **Run the `ApiGateway` application.**
-   - Start the application:
+   - From the `ApiGateway` folder:
      ```bash
      ./mvnw spring-boot:run
      ```
+   - Gateway listens on **port 8080**.
 
-6. **Test the default routes.**
-   - Start `UserService` (port `8081`) and `ProductService` (port `8082`).
-   - Use Postman or a browser to test routing:
-     - `http://localhost:8080/users` → Routes to `UserService`.
-     - `http://localhost:8080/products` → Routes to `ProductService`.
+6. **Test basic routing.**
+   - Have two microservices: `UserService` (on **8081**) and `ProductService` (on **8082**) running.
+   - Access:
+     - `http://localhost:8080/users` → Routes to `UserService`
+     - `http://localhost:8080/products` → Routes to `ProductService`
 
 ---
 
-### **Part 2: Adding Custom Filters**
+### **Part 2: Setting Up Microservices**
 
-7. **Create a custom global filter.**
-   - Add `LoggingFilter.java` in `src/main/java/com/microservices/apigateway`:
+7. **Create `UserService`.**
+   - Another Spring Boot project with **Spring Web**:
+     ```properties
+     # application.properties
+     server.port=8081
+     ```
+   - `UserController.java`:
      ```java
-     package com.microservices.apigateway;
+     package com.microservices.userservice;
 
-     import org.slf4j.Logger;
-     import org.slf4j.LoggerFactory;
-     import org.springframework.cloud.gateway.filter.GlobalFilter;
-     import org.springframework.stereotype.Component;
-     import reactor.core.publisher.Mono;
+     import org.springframework.web.bind.annotation.GetMapping;
+     import org.springframework.web.bind.annotation.RestController;
 
-     @Component
-     public class LoggingFilter implements GlobalFilter {
-
-         private static final Logger logger = LoggerFactory.getLogger(LoggingFilter.class);
-
-         @Override
-         public Mono<Void> filter(org.springframework.web.server.ServerWebExchange exchange,
-                                  org.springframework.cloud.gateway.filter.GatewayFilterChain chain) {
-
-             logger.info("Request Path: " + exchange.getRequest().getPath());
-             return chain.filter(exchange).then(Mono.fromRunnable(() -> {
-                 logger.info("Response Status Code: " + exchange.getResponse().getStatusCode());
-             }));
+     @RestController
+     public class UserController {
+         @GetMapping("/users")
+         public String getUsers() {
+             return "List of users from UserService";
          }
      }
      ```
 
-8. **Test the custom filter.**
-   - Access `/users` or `/products` and observe the logs to ensure request paths and response status codes are logged.
+8. **Create `ProductService`.**
+   - Another Spring Boot project:
+     ```properties
+     # application.properties
+     server.port=8082
+     ```
+   - `ProductController.java`:
+     ```java
+     package com.microservices.productservice;
+
+     import org.springframework.web.bind.annotation.GetMapping;
+     import org.springframework.web.bind.annotation.RestController;
+
+     @RestController
+     public class ProductController {
+         @GetMapping("/products")
+         public String getProducts() {
+             return "List of products from ProductService";
+         }
+     }
+     ```
+
+9. **Ensure both services run** on **8081** and **8082**.
 
 ---
 
-### **Part 3: Implementing Route-Specific Filters**
+### **Part 3: Adding Global Filters**
 
-9. **Add a request header filter.**
-   - Update `application.properties` for `user-service`:
-     ```properties
-     spring.cloud.gateway.routes[0].filters[0]=AddRequestHeader=X-User-Header, UserServiceHeader
-     ```
+10. **Create a global logging filter.**
+    - In `src/main/java/com/microservices/apigateway/LoggingFilter.java`:
+      ```java
+      package com.microservices.apigateway;
 
-10. **Verify the request header filter.**
-    - Use Postman to access `http://localhost:8080/users`.
-    - Confirm the `X-User-Header` is included in the request headers.
+      import org.slf4j.Logger;
+      import org.slf4j.LoggerFactory;
+      import org.springframework.cloud.gateway.filter.GlobalFilter;
+      import org.springframework.core.annotation.Order;
+      import org.springframework.stereotype.Component;
+      import reactor.core.publisher.Mono;
 
-11. **Add a custom response modification filter.**
+      @Component
+      @Order(1)
+      public class LoggingFilter implements GlobalFilter {
+
+          private static final Logger logger = LoggerFactory.getLogger(LoggingFilter.class);
+
+          @Override
+          public Mono<Void> filter(org.springframework.web.server.ServerWebExchange exchange,
+                                   org.springframework.cloud.gateway.filter.GatewayFilterChain chain) {
+              logger.info("Incoming request: {}", exchange.getRequest().getURI());
+              return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+                  logger.info("Outgoing response: {}", exchange.getResponse().getStatusCode());
+              }));
+          }
+      }
+      ```
+    - Logs each incoming request URI and outgoing response status.
+
+11. **Test the global logging filter.**
+    - Hit `http://localhost:8080/users` or `/products`.
+    - Check logs for messages like `Incoming request` and `Outgoing response`.
+
+---
+
+### **Part 4: Implementing Route-Specific Filters**
+
+12. **Add a request header filter.**
+    - In `application.properties`, for the user-service route:
+      ```properties
+      spring.cloud.gateway.routes[0].filters[0]=AddRequestHeader=X-User-Header, UserServiceHeader
+      ```
+    - This adds an `X-User-Header` to all requests passing via `/users/**`.
+
+13. **Verify the request header filter.**
+    - Use a client (Postman, curl) to GET `http://localhost:8080/users`.
+    - Check the request logs (on the user-service side or using a proxy) for `X-User-Header: UserServiceHeader`.
+
+14. **Add a custom response modification filter.**
     - Create `CustomResponseFilter.java`:
       ```java
       package com.microservices.apigateway;
@@ -136,44 +190,50 @@ Learn how to configure routing rules and implement custom filters in Spring Clou
           }
       }
       ```
+    - This filter appends an `X-Response-Header` to outgoing responses.
 
-12. **Apply the custom response filter.**
-    - Update `application.properties` for `product-service`:
+15. **Apply the custom response filter to product-service route.**
+    - In `application.properties`:
       ```properties
       spring.cloud.gateway.routes[1].filters[0]=CustomResponseFilter
       ```
+    - When requests match the `/products/**` route, the `X-Response-Header` is added.
 
-13. **Test the response modification filter.**
-    - Access `http://localhost:8080/products` and verify the `X-Response-Header` is added to the response headers.
+16. **Test the response modification filter.**
+    - Access `http://localhost:8080/products`.
+    - Check the response headers for `X-Response-Header: ModifiedResponse`.
 
 ---
 
-### **Part 4: Adding Predicate Rules**
+### **Part 5: Adding Predicate Rules**
 
-14. **Add a query parameter predicate.**
-    - Update `application.properties` for `user-service`:
+17. **Add a query parameter predicate.**
+    - For user-service, in `application.properties`:
       ```properties
       spring.cloud.gateway.routes[0].predicates[1]=Query=username
       ```
+    - This route only matches if `?username=...` is present in the query string.
 
-15. **Test the query parameter predicate.**
-    - Access `http://localhost:8080/users?username=test` and confirm the route matches only when the `username` parameter is present.
+18. **Test the query parameter predicate.**
+    - Access `http://localhost:8080/users?username=test`.
+    - Without the `username` param, the route might not match.
 
-16. **Add a time-based route predicate.**
-    - Update `application.properties` for `product-service`:
+19. **Add a time-based route predicate.**
+    - For product-service, in `application.properties`:
       ```properties
       spring.cloud.gateway.routes[1].predicates[1]=After=2024-01-01T00:00:00Z
       ```
+    - This route only becomes valid after January 1, 2024.
 
-17. **Test the time-based predicate.**
-    - Access `http://localhost:8080/products` and verify it routes only after the specified date.
+20. **Test the time-based predicate.**
+    - If the current date is before 2024-01-01, `/products/**` might return `404` or no route match.
 
 ---
 
-### **Part 5: Monitoring and Management**
+### **Part 6: Monitoring and Management**
 
-18. **Enable Spring Boot Actuator.**
-    - Add the following dependency in `pom.xml`:
+21. **Enable Spring Boot Actuator.**
+    - In `pom.xml`:
       ```xml
       <dependency>
           <groupId>org.springframework.boot</groupId>
@@ -181,34 +241,47 @@ Learn how to configure routing rules and implement custom filters in Spring Clou
       </dependency>
       ```
 
-19. **Expose management endpoints.**
-    - Add to `application.properties`:
+22. **Expose management endpoints.**
+    - In `application.properties`:
       ```properties
       management.endpoints.web.exposure.include=routes,filters
       ```
+    - This allows you to view gateway routes and filters via Actuator.
 
-20. **View active routes.**
-    - Access:
+23. **View active routes.**
+    - Visit:
       ```
       http://localhost:8080/actuator/routes
       ```
-    - Verify all configured routes are displayed.
+    - See all configured routes.
 
-21. **View available filters.**
-    - Access:
+24. **View available filters.**
+    - Visit:
       ```
       http://localhost:8080/actuator/filters
       ```
-    - Verify all active filters are displayed.
+    - Lists all filter classes (including custom ones).
 
 ---
 
-### **Optional Exercises**
+## **Optional Exercises**
 
 1. **Create a custom rate-limiting filter.**
-   - Use Redis to implement and test rate limiting for specific routes.
+   - Implement a GatewayFilterFactory or use Redis-based `RequestRateLimiter` for specific routes.
 
 2. **Integrate Circuit Breakers.**
-   - Add Resilience4j circuit breakers to routes and test their behavior under failure conditions.
+   - Combine with **Resilience4j** (or Spring Cloud CircuitBreaker) to handle downstream service failures.
+
+3. **Load Balancing.**
+   - If using **Eureka** or another discovery system, set `uri=lb://user-service` to load-balance multiple instances.
 
 ---
+
+## **Conclusion**
+By completing this lab:
+- **Configured routing rules** in a **Spring Cloud Gateway** (Spring Boot 3.4.1) application.
+- **Implemented custom filters** globally and route-specific to manipulate requests/responses.
+- **Used predicates** (query parameters, time-based) to dynamically match routes.
+- **Monitored** the gateway via Spring Boot Actuator endpoints.
+
+You now have an **API Gateway** centralizing cross-cutting concerns like logging, header manipulation, rate limiting, time-based routes, and more for your microservice environment.

@@ -1,7 +1,7 @@
-# **Lab 2: Securely Store and Manage Secrets Using Spring Cloud Vault**
+# **Lab 2: Securely Store and Manage Secrets Using Spring Cloud Vault (Spring Boot 3.4.1)**
 
 ## **Objective**
-Learn how to securely store and dynamically reload secrets using Spring Cloud Vault. Configure a microservice to retrieve sensitive configuration data, such as database credentials, from HashiCorp Vault.
+Learn how to securely store and dynamically reload secrets using **Spring Cloud Vault**. Configure a **Spring Boot 3.4.1** microservice to retrieve sensitive configuration data (e.g., database credentials) from **HashiCorp Vault**, and refresh them at runtime without restarting the application.
 
 ---
 
@@ -10,72 +10,76 @@ Learn how to securely store and dynamically reload secrets using Spring Cloud Va
 ### **Part 1: Installing and Running HashiCorp Vault**
 
 1. **Download the Vault binary.**
-   - Visit [https://www.vaultproject.io/downloads](https://www.vaultproject.io/downloads) and download the latest Vault binary for your operating system.
+   - Visit [Vault Downloads](https://www.vaultproject.io/downloads) and download the latest Vault binary for your operating system.
 
 2. **Extract the Vault binary.**
    - **Windows**:
-     - Unzip the downloaded file (e.g., `vault_1.14.1_windows_amd64.zip`) to a folder, such as `C:\HashiCorp\Vault`.
+     - Unzip (e.g., `vault_<version>_windows_amd64.zip`) to a folder like `C:\HashiCorp\Vault`.
    - **macOS/Linux**:
-     - Extract the file:
+     - Extract with:
        ```bash
        unzip vault_<version>_<platform>.zip -d ~/HashiCorp/Vault
        ```
 
 3. **Add Vault to the system PATH.**
    - **Windows**:
-     - Add the folder containing `vault.exe` to the PATH via Environment Variables.
+     - Add the folder with `vault.exe` to **Path** via Environment Variables.
    - **macOS/Linux**:
-     - Add Vault to the PATH:
+     - Update your shell config (e.g., `~/.bashrc` or `~/.zshrc`):
        ```bash
        export PATH=$PATH:~/HashiCorp/Vault
        ```
 
 4. **Start Vault in development mode.**
-   - Run:
+   - From a terminal:
      ```bash
      vault server -dev
      ```
-   - Copy the displayed `Root Token` for later use.
+   - Copy the displayed **Root Token** (e.g., `root` or `s.xxxxx...`).
 
 5. **Set Vault environment variables.**
-   - Configure Vault settings:
-     - **Windows** (Command Prompt):
-       ```cmd
-       set VAULT_ADDR=http://127.0.0.1:8200
-       set VAULT_TOKEN=<your-root-token>
-       ```
-     - **macOS/Linux**:
-       ```bash
-       export VAULT_ADDR=http://127.0.0.1:8200
-       export VAULT_TOKEN=<your-root-token>
-       ```
+   - **Windows (Command Prompt)**:
+     ```cmd
+     set VAULT_ADDR=http://127.0.0.1:8200
+     set VAULT_TOKEN=<your-root-token>
+     ```
+   - **macOS/Linux**:
+     ```bash
+     export VAULT_ADDR=http://127.0.0.1:8200
+     export VAULT_TOKEN=<your-root-token>
+     ```
 
 6. **Enable the KV secrets engine in Vault.**
    - Run:
      ```bash
      vault secrets enable -path=secret kv
      ```
+   - This creates a secret engine at `secret/`.
 
 7. **Add secrets to Vault.**
-   - Store secrets for the `user-service`:
+   - For example, store user-service credentials:
      ```bash
      vault kv put secret/user-service username=root password=root123
      ```
+   - This creates a secret at `secret/user-service` with two key-value pairs:
+     - `username=root`
+     - `password=root123`
 
 8. **Verify the stored secret.**
-   - Fetch the secret:
+   - Run:
      ```bash
      vault kv get secret/user-service
      ```
+   - Confirm the displayed data matches what you stored.
 
 ---
 
-### **Part 2: Setting Up the Spring Boot Application**
+### **Part 2: Setting Up the Spring Boot Application (UserService)**
 
 9. **Generate a new Spring Boot project for `UserService`.**
    - Visit [https://start.spring.io/](https://start.spring.io/).
-   - Configure the project:
-     - **Spring Boot Version**: `3.4.1`
+   - Configure:
+     - **Spring Boot Version**: **3.4.1**
      - **Group Id**: `com.microservices`
      - **Artifact Id**: `user-service`
      - **Name**: `UserService`
@@ -84,15 +88,16 @@ Learn how to securely store and dynamically reload secrets using Spring Cloud Va
        - Spring Web
        - Spring Cloud Vault Config
        - Spring Boot Actuator
-   - Extract the downloaded zip file into a folder named `UserService`.
+   - Download and extract into a folder named `UserService`.
 
-10. **Import the project into your IDE.**
-    - Open the project in your preferred IDE.
+10. **Import `UserService` into your IDE.**
 
 11. **Add Spring Cloud Vault configurations.**
-    - Open `src/main/resources/application.properties` and add:
+    - In `src/main/resources/application.properties`:
       ```properties
       spring.application.name=user-service
+
+      # Vault connection
       spring.cloud.vault.uri=http://127.0.0.1:8200
       spring.cloud.vault.token=<your-root-token>
       spring.cloud.vault.kv.enabled=true
@@ -101,7 +106,7 @@ Learn how to securely store and dynamically reload secrets using Spring Cloud Va
       ```
 
 12. **Create a configuration class to map secrets.**
-    - Create `VaultConfig.java` in `src/main/java/com/microservices/userservice`:
+    - In `src/main/java/com/microservices/userservice`, create `VaultConfig.java`:
       ```java
       package com.microservices.userservice;
 
@@ -133,8 +138,8 @@ Learn how to securely store and dynamically reload secrets using Spring Cloud Va
       }
       ```
 
-13. **Create a REST controller to expose secrets.**
-    - Create `VaultController.java`:
+13. **Expose secrets via a REST controller.**
+    - In `VaultController.java`:
       ```java
       package com.microservices.userservice;
 
@@ -150,29 +155,31 @@ Learn how to securely store and dynamically reload secrets using Spring Cloud Va
 
           @GetMapping("/secrets")
           public String getSecrets() {
-              return "Username: " + vaultConfig.getUsername() + ", Password: " + vaultConfig.getPassword();
+              return "Username: " + vaultConfig.getUsername() + 
+                     ", Password: " + vaultConfig.getPassword();
           }
       }
       ```
 
 14. **Run the application.**
-    - Start the application:
+    - From the `UserService` directory:
       ```bash
       ./mvnw spring-boot:run
       ```
 
 15. **Test the `/secrets` endpoint.**
-    - Access:
+    - Go to:
       ```
       http://localhost:8080/secrets
       ```
+    - Confirm it returns **Username: root, Password: root123** (from Vault).
 
 ---
 
-### **Part 3: Adding Dynamic Updates for Secrets**
+### **Part 3: Enabling Dynamic Updates**
 
 16. **Add Actuator for dynamic refresh.**
-    - Add to `pom.xml`:
+    - In `pom.xml`:
       ```xml
       <dependency>
           <groupId>org.springframework.boot</groupId>
@@ -181,37 +188,34 @@ Learn how to securely store and dynamically reload secrets using Spring Cloud Va
       ```
 
 17. **Expose the refresh endpoint.**
-    - Add to `application.properties`:
+    - In `application.properties`:
       ```properties
       management.endpoints.web.exposure.include=refresh
       ```
 
 18. **Update secrets in Vault.**
-    - Modify the stored secrets:
+    - For example:
       ```bash
       vault kv put secret/user-service username=admin password=admin123
       ```
 
 19. **Trigger a configuration refresh.**
-    - Use the following command:
+    - Use:
       ```bash
       curl -X POST http://localhost:8080/actuator/refresh
       ```
 
 20. **Verify the updated secrets.**
-    - Access `http://localhost:8080/secrets` and confirm the updated values.
+    - Re-check `http://localhost:8080/secrets`.
+    - Confirm **Username: admin, Password: admin123** is displayed.
 
 ---
 
-### **Optional Exercises**
+## **Conclusion**
+In this lab, you successfully:
+- **Installed and started Vault** in development mode.
+- **Stored secrets** (username/password) in Vault under `secret/user-service`.
+- **Configured a Spring Boot 3.4.1 microservice** (`UserService`) to fetch and map those secrets dynamically using **Spring Cloud Vault**.
+- **Enabled Actuator** to refresh secrets at runtime without restarting the application.
 
-1. **Use Vault for database credentials.**
-   - Update the `application.properties` to use Vault-managed secrets for database credentials:
-     ```properties
-     spring.datasource.url=jdbc:mysql://localhost:3306/userdb
-     spring.datasource.username=${vault.username}
-     spring.datasource.password=${vault.password}
-     ```
-
-2. **Integrate environment profiles.**
-   - Add separate secrets for `dev` and `prod` environments and test switching between them dynamically.
+This approach ensures secure management of sensitive information (like credentials) and makes secret rotation and updating seamless.

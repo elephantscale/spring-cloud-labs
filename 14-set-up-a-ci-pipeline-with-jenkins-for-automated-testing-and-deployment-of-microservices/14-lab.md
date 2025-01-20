@@ -1,7 +1,7 @@
-# **Lab 14: Set Up a CI Pipeline with Jenkins for Automated Testing and Deployment of Microservices**
+# **Lab 14: Set Up a CI Pipeline with Jenkins for Automated Testing and Deployment of Microservices (Spring Boot 3.4.1)**
 
 ## **Objective**
-Learn how to install and configure Jenkins to automate the build, testing, and deployment process for Spring Boot microservices. Create a Jenkins pipeline that builds and deploys two microservices: `UserService` and `OrderService`.
+Learn how to install and configure **Jenkins** to automate the build, testing, and deployment process for **Spring Boot 3.4.1** microservices. You will create a CI pipeline that builds two microservices (`UserService` and `OrderService`) and optionally deploys them.
 
 ---
 
@@ -9,44 +9,42 @@ Learn how to install and configure Jenkins to automate the build, testing, and d
 
 ### **Part 1: Installing Jenkins**
 
-1. **Install Java (required for Jenkins).**
-   - Check if Java is installed:
+1. **Install Java (Jenkins prerequisite).**
+   - Confirm Java by running:
      ```bash
      java -version
      ```
-   - If not installed:
-     - Download JDK 17 from [Adoptium](https://adoptium.net/).
-     - Follow the installation instructions.
-   - Verify Java installation:
+   - If not found, install **JDK 17** (e.g., from [Adoptium](https://adoptium.net/)).
+   - Verify installation:
      ```bash
      java -version
      ```
 
 2. **Download Jenkins.**
-   - Visit [Jenkins Downloads](https://www.jenkins.io/download/) and download the installer for your operating system.
+   - Visit [Jenkins Downloads](https://www.jenkins.io/download/) and get the installer for your OS (Windows, macOS, or Linux).
 
 3. **Install Jenkins.**
-   - Run the installer and follow the setup instructions:
-     - For Linux: Use your package manager (e.g., `apt`, `yum`).
-     - For Windows: Choose the **Run Jenkins as a Service** option.
-     - For macOS: Use the `.pkg` installer.
+   - Run the installer and follow the wizard:
+     - **Linux**: Use your package manager or `.deb`/`.rpm` packages.
+     - **Windows**: Choose “**Run Jenkins as a Service**” option.
+     - **macOS**: Use the `.pkg` installer.
 
 4. **Start Jenkins.**
-   - Start Jenkins:
-     - **Linux/macOS**:
-       ```bash
-       sudo systemctl start jenkins
-       ```
-     - **Windows**: Start Jenkins from **Services**.
+   - Jenkins usually starts on **port 8080**.
+   - **Linux/macOS**:
+     ```bash
+     sudo systemctl start jenkins
+     ```
+   - **Windows**: Start it from **Services**.
 
 5. **Verify Jenkins is running.**
-   - Open your browser and navigate to:
+   - Go to:
      ```
      http://localhost:8080
      ```
 
 6. **Unlock Jenkins.**
-   - Retrieve the initial admin password:
+   - Follow the prompt to retrieve the initial admin password:
      - **Linux/macOS**:
        ```bash
        sudo cat /var/lib/jenkins/secrets/initialAdminPassword
@@ -55,24 +53,24 @@ Learn how to install and configure Jenkins to automate the build, testing, and d
        ```cmd
        type C:\Jenkins\secrets\initialAdminPassword
        ```
-   - Paste the password into the Jenkins setup page.
+   - Copy/paste it into Jenkins.
 
 7. **Install suggested plugins.**
-   - Follow the Jenkins setup wizard and select **Install suggested plugins**.
+   - Jenkins will prompt you to install **Suggested plugins**. Do so.
 
 8. **Create an admin user.**
-   - Create an admin account and complete the setup.
+   - Finalize the setup by creating an admin account.
 
 ---
 
 ### **Part 2: Preparing the Microservices**
 
-9. **Ensure `UserService` and `OrderService` are ready.**
-   - Ensure both microservices are in separate Git repositories.
-   - Push the projects to a Git hosting platform like GitHub.
+9. **Ensure `UserService` and `OrderService` are in Git repositories.**
+   - Each microservice (`UserService`, `OrderService`) is a **Spring Boot 3.4.1** project.
+   - Both are pushed to a hosting platform like **GitHub**.
 
-10. **Configure `pom.xml` for Jenkins integration.**
-    - Ensure both `pom.xml` files include the `surefire` plugin:
+10. **Configure `pom.xml` for Jenkins.**
+    - In each microservice’s `pom.xml`, ensure the **Surefire plugin** is present for running tests:
       ```xml
       <build>
           <plugins>
@@ -84,49 +82,50 @@ Learn how to install and configure Jenkins to automate the build, testing, and d
           </plugins>
       </build>
       ```
+    - This ensures Jenkins can run `mvn test` or `mvn clean install`.
 
 ---
 
 ### **Part 3: Configuring Jenkins for CI**
 
 11. **Create a Jenkins job for `UserService`.**
-    - Go to the Jenkins dashboard and click **New Item**.
-    - Enter the name `UserService-CI` and select **Freestyle Project**.
+    - From the Jenkins dashboard, click **New Item**.
+    - Name it `UserService-CI`, choose **Freestyle project**.
     - Click **OK**.
 
-12. **Set up the Git repository for `UserService`.**
-    - In **Source Code Management**, choose **Git** and enter the repository URL.
+12. **Set up the Git repository in Jenkins.**
+    - Under **Source Code Management**, select **Git**.
+    - Enter the repository URL for `UserService`.
 
 13. **Add a Maven build step.**
     - In the **Build** section, add **Invoke top-level Maven targets**.
-    - Set **Goals** to:
+    - Goals:
       ```
       clean install
       ```
 
-14. **Save and run the build.**
-    - Save the job and click **Build Now**.
-    - Verify the build completes successfully.
+14. **Save and run the job.**
+    - Click **Build Now**.
+    - Confirm the build passes.
 
-15. **Repeat for `OrderService`.**
-    - Create another Jenkins job, `OrderService-CI`, and configure it similarly.
+15. **Create a job for `OrderService`.**
+    - Same approach: name it `OrderService-CI`, configure the Git repo, and `clean install`.
 
 ---
 
 ### **Part 4: Creating a Jenkins Pipeline**
 
-16. **Install the Pipeline plugin.**
-    - Navigate to **Manage Jenkins > Manage Plugins**.
-    - Search for **Pipeline** and install it.
+16. **Install the Pipeline plugin if not installed.**
+    - Go to **Manage Jenkins** → **Manage Plugins**.
+    - Search **Pipeline** and install it.
 
 17. **Create a new pipeline job.**
-    - Go to the Jenkins dashboard and click **New Item**.
-    - Select **Pipeline** and name it `Microservices-CI-Pipeline`.
+    - Go to dashboard → **New Item**.
+    - Select **Pipeline**, name it `Microservices-CI-Pipeline`.
     - Click **OK**.
 
 18. **Write the pipeline script.**
-    - In the **Pipeline** section, select **Pipeline script**.
-    - Add the following script:
+    - Under **Pipeline** → **Pipeline script**:
       ```groovy
       pipeline {
           agent any
@@ -134,7 +133,8 @@ Learn how to install and configure Jenkins to automate the build, testing, and d
               stage('Build UserService') {
                   steps {
                       script {
-                          git url: '<UserService Git Repository>'
+                          // Clone UserService repo
+                          git url: '<UserService Git URL>'
                           dir('user-service') {
                               sh './mvnw clean install'
                           }
@@ -144,7 +144,8 @@ Learn how to install and configure Jenkins to automate the build, testing, and d
               stage('Build OrderService') {
                   steps {
                       script {
-                          git url: '<OrderService Git Repository>'
+                          // Clone OrderService repo
+                          git url: '<OrderService Git URL>'
                           dir('order-service') {
                               sh './mvnw clean install'
                           }
@@ -154,43 +155,55 @@ Learn how to install and configure Jenkins to automate the build, testing, and d
           }
       }
       ```
-      - Replace `<UserService Git Repository>` and `<OrderService Git Repository>` with the actual URLs.
+    - Replace `<UserService Git URL>` and `<OrderService Git URL>` with actual repositories.
+    - On **Windows** agents, use `bat` instead of `sh`.
 
 19. **Save and run the pipeline.**
-    - Save the job and click **Build Now**.
-    - Verify that both microservices are built successfully.
+    - Click **Build Now**.
+    - Confirm both microservices build successfully in one pipeline run.
 
 ---
 
 ### **Part 5: Deployment (Optional)**
 
-20. **Add deployment steps.**
-    - Add a deployment stage to the pipeline script:
+20. **Add a deployment stage.**
+    - Example:
       ```groovy
       stage('Deploy to Server') {
           steps {
               script {
-                  sh 'scp target/*.jar user@server:/path/to/deployment/'
+                  sh 'scp user-service/target/*.jar user@server:/path/to/deploy/'
+                  sh 'scp order-service/target/*.jar user@server:/path/to/deploy/'
               }
           }
       }
       ```
+    - This is just a placeholder. You can also push Docker images, etc.
 
 21. **Configure automated triggers.**
-    - Set up webhooks in your Git repositories to trigger the pipeline on code changes.
+    - In your GitHub (or other Git server), set up **webhooks** to trigger Jenkins on each push.
 
 ---
 
-### **Optional Exercises**
+## **Optional Exercises**
 
 1. **Integrate automated tests.**
-   - Add a stage to execute integration tests before deployment.
+   - Add a pipeline stage to run integration tests or Docker-based tests.
 
 2. **Set up a multi-branch pipeline.**
-   - Use the **Pipeline Multibranch Plugin** to detect branches automatically.
+   - Use the **Multibranch Pipeline Plugin** to automatically create pipeline jobs for each branch.
 
 3. **Add Docker integration.**
-   - Build Docker images in the pipeline and push them to a registry.
+   - Build Docker images in your pipeline, then push them to Docker Hub or another registry.
 
 4. **Monitor Jenkins builds.**
-   - Install and configure plugins like **Build Monitor View** or **Blue Ocean** for visualization.
+   - Use plugins like **Build Monitor View** or **Blue Ocean** for improved visualization of job statuses.
+
+---
+
+## **Conclusion**
+By completing this lab, you have:
+- **Installed and configured Jenkins** on port **8080**.
+- **Set up Freestyle jobs** for each microservice (UserService, OrderService).
+- **Created a pipeline** that clones, builds, and optionally deploys both microservices in a single run.
+- **Learned** how Jenkins can automate your entire CI flow, ensuring code changes are consistently tested and deployed. Enjoy building more advanced CI/CD pipelines!

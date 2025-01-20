@@ -1,7 +1,7 @@
-# **Lab 3: Set Up Service Discovery Using Eureka and Register Services**
+# **Lab 3: Set Up Service Discovery Using Eureka and Register Services (Spring Boot 3.4.1)**
 
 ## **Objective**
-Learn how to set up a Eureka Server for service discovery and enable multiple microservices to register dynamically. Test service discovery and interaction between services using Eureka.
+Learn how to set up a **Eureka Server** for service discovery and enable multiple microservices (Spring Boot **3.4.1**) to register dynamically. Test discovery and interaction between services using Eureka.
 
 ---
 
@@ -9,10 +9,10 @@ Learn how to set up a Eureka Server for service discovery and enable multiple mi
 
 ### **Part 1: Setting Up the Eureka Server**
 
-1. **Generate a new Spring Boot project using Spring Initializr.**
+1. **Generate a new Spring Boot project for `EurekaServer`.**
    - Visit [https://start.spring.io/](https://start.spring.io/).
    - Configure the project:
-     - **Spring Boot Version**: Select **3.4.1**.
+     - **Spring Boot Version**: **3.4.1**
      - **Group Id**: `com.microservices`
      - **Artifact Id**: `eureka-server`
      - **Name**: `EurekaServer`
@@ -21,15 +21,13 @@ Learn how to set up a Eureka Server for service discovery and enable multiple mi
        - Spring Web
        - Spring Cloud Eureka Server
    - Click **Generate** to download the project zip file.
-   - Extract the downloaded zip file into a folder named `EurekaServer`.
+   - Extract it into a folder named `EurekaServer`.
 
 2. **Import the project into your IDE.**
-   - Open your IDE (e.g., IntelliJ, Eclipse, or VS Code).
-   - Import the `EurekaServer` project as a Maven project.
+   - Open your IDE (e.g., IntelliJ, Eclipse, VS Code) and import `EurekaServer` as a Maven project.
 
 3. **Enable the Eureka Server.**
-   - Open the `EurekaServerApplication.java` file in the `src/main/java/com/microservices/eurekaserver` folder.
-   - Add the `@EnableEurekaServer` annotation:
+   - In `EurekaServerApplication.java` (inside `src/main/java/com/microservices/eurekaserver`):
      ```java
      package com.microservices.eurekaserver;
 
@@ -47,7 +45,7 @@ Learn how to set up a Eureka Server for service discovery and enable multiple mi
      ```
 
 4. **Configure the Eureka Server in `application.properties`.**
-   - Add the following configuration in the `src/main/resources/application.properties`:
+   - In `src/main/resources/application.properties`, add:
      ```properties
      spring.application.name=eureka-server
      server.port=8761
@@ -57,25 +55,23 @@ Learn how to set up a Eureka Server for service discovery and enable multiple mi
      ```
 
 5. **Run the Eureka Server.**
-   - Start the `EurekaServer` application:
+   - From the `EurekaServer` directory:
      ```bash
      ./mvnw spring-boot:run
      ```
-
-6. **Access the Eureka Dashboard.**
-   - Open a browser and navigate to:
+   - Check the Eureka Dashboard at:
      ```
      http://localhost:8761
      ```
-   - Verify that the Eureka dashboard is displayed with no registered services yet.
+   - You should see **Eureka** up and running, but with no registered services yet.
 
 ---
 
-### **Part 2: Setting Up a Client Service**
+### **Part 2: Creating a Client Service (UserService)**
 
-7. **Generate a new Spring Boot project for `UserService`.**
-   - Configure the project:
-     - **Spring Boot Version**: Select **3.4.1**.
+6. **Generate a new Spring Boot project for `UserService`.**
+   - Repeat the process at [https://start.spring.io/](https://start.spring.io/):
+     - **Spring Boot Version**: **3.4.1**
      - **Group Id**: `com.microservices`
      - **Artifact Id**: `user-service`
      - **Name**: `UserService`
@@ -83,13 +79,12 @@ Learn how to set up a Eureka Server for service discovery and enable multiple mi
      - **Dependencies**:
        - Spring Web
        - Spring Cloud Eureka Client
-   - Click **Generate** to download the project zip file.
-   - Extract the downloaded zip file into a folder named `UserService`.
+   - Extract the zip into `UserService`.
 
-8. **Import the project into your IDE.**
+7. **Import `UserService` into your IDE.**
 
-9. **Enable Eureka Client in the application.**
-   - Open the `UserServiceApplication.java` file and add the `@EnableEurekaClient` annotation:
+8. **Enable Eureka Client in `UserService`.**
+   - In `UserServiceApplication.java`:
      ```java
      package com.microservices.userservice;
 
@@ -106,17 +101,17 @@ Learn how to set up a Eureka Server for service discovery and enable multiple mi
      }
      ```
 
-10. **Configure the Eureka client in `application.properties`.**
-    - Add the following configuration in `src/main/resources/application.properties`:
-      ```properties
-      spring.application.name=user-service
-      server.port=8081
+9. **Configure Eureka in `application.properties`.**
+   - In `src/main/resources/application.properties`, add:
+     ```properties
+     spring.application.name=user-service
+     server.port=8081
 
-      eureka.client.service-url.defaultZone=http://localhost:8761/eureka
-      ```
+     eureka.client.service-url.defaultZone=http://localhost:8761/eureka
+     ```
 
-11. **Add a sample REST endpoint.**
-    - Create `UserController.java`:
+10. **Add a REST endpoint.**
+    - Create `UserController.java` in `com.microservices.userservice`:
       ```java
       package com.microservices.userservice;
 
@@ -133,82 +128,113 @@ Learn how to set up a Eureka Server for service discovery and enable multiple mi
       }
       ```
 
-12. **Run the `UserService` application.**
-    - Start the service:
+11. **Run the `UserService`.**
+    - From the `UserService` directory:
       ```bash
       ./mvnw spring-boot:run
       ```
+    - Check the logs. It should say `Registering application user-service with Eureka...`
 
-13. **Verify service registration in Eureka.**
-    - Refresh the Eureka dashboard at `http://localhost:8761`.
-    - Confirm that `user-service` is listed as a registered service.
+12. **Verify service registration.**
+    - Refresh the Eureka Dashboard at:
+      ```
+      http://localhost:8761
+      ```
+    - You should see `user-service` registered.
 
 ---
 
-### **Part 3: Adding Another Service**
+### **Part 3: Adding Another Service (ProductService)**
 
-14. **Generate a new Spring Boot project for `ProductService`.**
-    - Repeat steps 7 and 8 with the following changes:
-      - **Artifact Id**: `product-service`
-      - **Name**: `ProductService`
-      - **Package Name**: `com.microservices.productservice`
+13. **Generate a new Spring Boot project for `ProductService`.**
+   - Same approach:
+     - **Artifact Id**: `product-service`
+     - **Name**: `ProductService`
+     - **Package Name**: `com.microservices.productservice`
+     - **Dependencies**:
+       - Spring Web
+       - Spring Cloud Eureka Client
 
-15. **Enable Eureka Client for `ProductService`.**
-    - Add the `@EnableEurekaClient` annotation in the `ProductServiceApplication.java` file.
+14. **Enable Eureka Client.**
+   - In `ProductServiceApplication.java`:
+     ```java
+     package com.microservices.productservice;
 
-16. **Configure Eureka for `ProductService`.**
-    - Add the following configuration in `application.properties`:
-      ```properties
-      spring.application.name=product-service
-      server.port=8082
+     import org.springframework.boot.SpringApplication;
+     import org.springframework.boot.autoconfigure.SpringBootApplication;
+     import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 
-      eureka.client.service-url.defaultZone=http://localhost:8761/eureka
-      ```
+     @SpringBootApplication
+     @EnableEurekaClient
+     public class ProductServiceApplication {
+         public static void main(String[] args) {
+             SpringApplication.run(ProductServiceApplication.class, args);
+         }
+     }
+     ```
 
-17. **Add a REST endpoint for `ProductService`.**
-    - Create `ProductController.java`:
-      ```java
-      package com.microservices.productservice;
+15. **Configure Eureka in `application.properties`.**
+   - In `src/main/resources/application.properties`:
+     ```properties
+     spring.application.name=product-service
+     server.port=8082
 
-      import org.springframework.web.bind.annotation.GetMapping;
-      import org.springframework.web.bind.annotation.RestController;
+     eureka.client.service-url.defaultZone=http://localhost:8761/eureka
+     ```
 
-      @RestController
-      public class ProductController {
+16. **Add a REST endpoint for `ProductService`.**
+   - Create `ProductController.java`:
+     ```java
+     package com.microservices.productservice;
 
-          @GetMapping("/products")
-          public String getProducts() {
-              return "List of products";
-          }
+     import org.springframework.web.bind.annotation.GetMapping;
+     import org.springframework.web.bind.annotation.RestController;
+
+     @RestController
+     public class ProductController {
+
+         @GetMapping("/products")
+         public String getProducts() {
+             return "List of products";
+         }
       }
       ```
 
-18. **Run the `ProductService` application.**
-    - Start the service:
+17. **Run the `ProductService`.**
+    - Again:
       ```bash
       ./mvnw spring-boot:run
       ```
 
-19. **Verify service registration in Eureka.**
-    - Refresh the Eureka dashboard at `http://localhost:8761`.
-    - Confirm that both `user-service` and `product-service` are listed.
+18. **Verify both services in Eureka.**
+    - Check `http://localhost:8761`.
+    - You should see both `user-service` and `product-service` registered.
 
 ---
 
 ### **Part 4: Testing Service Discovery**
 
-20. **Test inter-service communication using Eureka.**
-    - Access the REST endpoints:
-      - `UserService`: `http://localhost:8081/users`
-      - `ProductService`: `http://localhost:8082/products`
+19. **Test microservices endpoints.**
+    - `UserService`: 
+      ```
+      http://localhost:8081/users
+      ```
+    - `ProductService`:
+      ```
+      http://localhost:8082/products
+      ```
+    - Both should return simple strings verifying they’re live and registered with Eureka.
+
+20. **(Optional) Test inter-service calls.**
+    - You can call `http://user-service/users` from `ProductService` if needed, using Eureka’s naming, but that involves Ribbon or Spring LoadBalancer for dynamic discovery.
 
 ---
 
-### **Optional Exercises**
+## **Conclusion**
+By completing this lab, you have:
+- **Set up a Eureka Server** (Spring Boot **3.4.1**) on port 8761.
+- **Registered two microservices** (`UserService`, `ProductService`) with Eureka.
+- **Verified** that Eureka’s dashboard shows these services as **UP**.
+- **Optionally tested** basic REST endpoints.
 
-1. **Run multiple instances of `UserService`.**
-   - Modify `application.properties` to run on different ports (e.g., `8081`, `8083`).
-   - Verify multiple instances in Eureka.
-
-2. **Integrate Ribbon for client-side load balancing.**
-   - Add the Ribbon dependency to a client microservice and test load balancing between `UserService` instances.
+This enables dynamic discovery of services without hardcoded URLs, forming the basis for microservice interaction.

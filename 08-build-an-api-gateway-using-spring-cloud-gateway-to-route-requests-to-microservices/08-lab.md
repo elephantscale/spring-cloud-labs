@@ -1,7 +1,7 @@
-# **Lab 8: Build an API Gateway Using Spring Cloud Gateway to Route Requests to Microservices**
+# **Lab 8: Build an API Gateway Using Spring Cloud Gateway to Route Requests to Microservices (Spring Boot 3.4.1)**
 
 ## **Objective**
-Learn how to build an API Gateway using Spring Cloud Gateway. Route requests to multiple microservices, configure custom filters, and enable monitoring.
+Learn how to build an **API Gateway** using **Spring Cloud Gateway** (with Spring Boot **3.4.1**). You will configure routes to multiple microservices, add global/custom filters, and enable monitoring endpoints for deeper insights.
 
 ---
 
@@ -9,23 +9,21 @@ Learn how to build an API Gateway using Spring Cloud Gateway. Route requests to 
 
 ### **Part 1: Setting Up the API Gateway**
 
-1. **Generate a new Spring Boot project using Spring Initializr.**
-   - Visit [https://start.spring.io/](https://start.spring.io/).
-   - Configure the project:
-     - **Spring Boot Version**: Select **3.4.1**.
-     - **Group Id**: `com.microservices`
-     - **Artifact Id**: `api-gateway`
-     - **Name**: `ApiGateway`
-     - **Dependencies**:
-       - Spring Cloud Gateway
-       - Spring Boot Actuator
-   - Click **Generate** to download the project zip file.
-   - Extract the zip file into a folder named `ApiGateway`.
+1. **Generate a new Spring Boot project for `ApiGateway`.**
+   - Go to [https://start.spring.io/](https://start.spring.io/).
+   - **Spring Boot Version**: **3.4.1**
+   - **Group Id**: `com.microservices`
+   - **Artifact Id**: `api-gateway`
+   - **Name**: `ApiGateway`
+   - **Dependencies**:
+     - Spring Cloud Gateway
+     - Spring Boot Actuator
+   - Extract into a folder named `ApiGateway`.
 
 2. **Import the project into your IDE.**
 
-3. **Enable Gateway functionality in `ApiGatewayApplication`.**
-   - Open `ApiGatewayApplication.java` in `src/main/java/com/microservices/apigateway`:
+3. **Enable Gateway functionality.**
+   - In `ApiGatewayApplication.java` (e.g., `src/main/java/com/microservices/apigateway`):
      ```java
      package com.microservices.apigateway;
 
@@ -41,7 +39,7 @@ Learn how to build an API Gateway using Spring Cloud Gateway. Route requests to 
      ```
 
 4. **Configure basic routing in `application.properties`.**
-   - Create `application.properties` in `src/main/resources` and add:
+   - In `src/main/resources/application.properties`:
      ```properties
      server.port=8080
 
@@ -55,26 +53,28 @@ Learn how to build an API Gateway using Spring Cloud Gateway. Route requests to 
      ```
 
 5. **Run the API Gateway application.**
-   - Start the application:
+   - From `ApiGateway` folder:
      ```bash
      ./mvnw spring-boot:run
      ```
+   - The gateway starts on port **8080**.
 
 6. **Test basic routing.**
-   - Start `UserService` (port `8081`) and `ProductService` (port `8082`).
-   - Test routes:
-     - `http://localhost:8080/users` routes to `UserService`.
-     - `http://localhost:8080/products` routes to `ProductService`.
+   - Make sure you have two microservices: `UserService` on **8081** and `ProductService` on **8082** running.
+   - Confirm:
+     - `http://localhost:8080/users` routes to `UserService`
+     - `http://localhost:8080/products` routes to `ProductService`
 
 ---
 
 ### **Part 2: Setting Up Microservices**
 
-7. **Create `UserService`.**
-   - Generate a Spring Boot project with:
-     - **Artifact Id**: `user-service`
-     - **Dependencies**: Spring Web
-   - Add `UserController`:
+7. **Create or confirm `UserService`.**
+   - Spring Boot app with **Spring Web**. Suppose `application.properties` has:
+     ```properties
+     server.port=8081
+     ```
+   - A simple controller:
      ```java
      package com.microservices.userservice;
 
@@ -83,7 +83,6 @@ Learn how to build an API Gateway using Spring Cloud Gateway. Route requests to 
 
      @RestController
      public class UserController {
-
          @GetMapping("/users")
          public String getUsers() {
              return "List of users from UserService";
@@ -91,11 +90,12 @@ Learn how to build an API Gateway using Spring Cloud Gateway. Route requests to 
      }
      ```
 
-8. **Create `ProductService`.**
-   - Generate another Spring Boot project with:
-     - **Artifact Id**: `product-service`
-     - **Dependencies**: Spring Web
-   - Add `ProductController`:
+8. **Create or confirm `ProductService`.**
+   - Another Spring Boot app with **Spring Web**. `application.properties`:
+     ```properties
+     server.port=8082
+     ```
+   - A simple controller:
      ```java
      package com.microservices.productservice;
 
@@ -104,7 +104,6 @@ Learn how to build an API Gateway using Spring Cloud Gateway. Route requests to 
 
      @RestController
      public class ProductController {
-
          @GetMapping("/products")
          public String getProducts() {
              return "List of products from ProductService";
@@ -112,24 +111,14 @@ Learn how to build an API Gateway using Spring Cloud Gateway. Route requests to 
      }
      ```
 
-9. **Run `UserService` and `ProductService`.**
-   - Set ports in their `application.properties` files:
-     ```properties
-     server.port=8081
-     ```
-     ```properties
-     server.port=8082
-     ```
-   - Verify endpoints:
-     - `http://localhost:8081/users`
-     - `http://localhost:8082/products`
+9. **Ensure both microservices run** at ports **8081** and **8082**, respectively.
 
 ---
 
 ### **Part 3: Adding Global Filters**
 
 10. **Create a global logging filter.**
-    - Add `LoggingFilter.java` in `src/main/java/com/microservices/apigateway`:
+    - In `src/main/java/com/microservices/apigateway/LoggingFilter.java`:
       ```java
       package com.microservices.apigateway;
 
@@ -149,58 +138,67 @@ Learn how to build an API Gateway using Spring Cloud Gateway. Route requests to 
           @Override
           public Mono<Void> filter(org.springframework.web.server.ServerWebExchange exchange,
                                    org.springframework.cloud.gateway.filter.GatewayFilterChain chain) {
-              logger.info("Incoming request: " + exchange.getRequest().getURI());
+              logger.info("Incoming request: {}", exchange.getRequest().getURI());
               return chain.filter(exchange).then(Mono.fromRunnable(() -> {
-                  logger.info("Outgoing response: " + exchange.getResponse().getStatusCode());
+                  logger.info("Outgoing response: {}", exchange.getResponse().getStatusCode());
               }));
           }
       }
       ```
+    - This logs requests and responses at a **global** level.
 
 11. **Test the global logging filter.**
-    - Access `/users` or `/products` and verify logs in the console.
+    - Hit `/users` or `/products` via the gateway.
+    - Observe logs in the console. You should see `Incoming request` and `Outgoing response`.
 
 ---
 
 ### **Part 4: Customizing Routes**
 
 12. **Add a route with custom headers.**
-    - Update `application.properties`:
+    - In `application.properties`, add a third route:
       ```properties
       spring.cloud.gateway.routes[2].id=custom-route
       spring.cloud.gateway.routes[2].uri=http://httpbin.org:80
       spring.cloud.gateway.routes[2].predicates[0]=Path=/custom/**
       spring.cloud.gateway.routes[2].filters[0]=AddRequestHeader=X-Custom-Header, CustomValue
       ```
+    - This route sends any request matching `/custom/**` to [httpbin.org](http://httpbin.org) with an extra header.
 
 13. **Test the custom route.**
-    - Access `http://localhost:8080/custom` and verify the header is added.
+    - Access:
+      ```
+      http://localhost:8080/custom
+      ```
+    - You should see a response from httpbin, and in the logs or the httpbin response, the `X-Custom-Header` is attached.
 
 14. **Add a rate limiter.**
-    - Add the `spring-boot-starter-data-redis` dependency in `pom.xml`:
+    - **Add Redis dependency** in `pom.xml` if you want advanced rate-limiting:
       ```xml
       <dependency>
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-starter-data-redis</artifactId>
       </dependency>
       ```
-    - Configure rate limiting in `application.properties`:
+    - Then in `application.properties`, add:
       ```properties
       spring.cloud.gateway.routes[3].id=rate-limited-route
       spring.cloud.gateway.routes[3].uri=http://httpbin.org:80
       spring.cloud.gateway.routes[3].predicates[0]=Path=/rate-limited/**
       spring.cloud.gateway.routes[3].filters[0]=RequestRateLimiter=redis-rate-limiter.replenishRate=2, redis-rate-limiter.burstCapacity=2
       ```
+    - This allows only **2** requests in a certain timeframe before rate-limiting further calls.
 
 15. **Test the rate limiter.**
-    - Access `/rate-limited` multiple times and verify only 2 requests are allowed per burst.
+    - Access `/rate-limited` multiple times in quick succession.
+    - After the threshold, you should see errors or rate-limited responses.
 
 ---
 
 ### **Part 5: Monitoring**
 
 16. **Enable Spring Boot Actuator.**
-    - Ensure this dependency is added:
+    - Ensure `spring-boot-starter-actuator` is in `pom.xml`:
       ```xml
       <dependency>
           <groupId>org.springframework.boot</groupId>
@@ -209,27 +207,38 @@ Learn how to build an API Gateway using Spring Cloud Gateway. Route requests to 
       ```
 
 17. **Expose management endpoints.**
-    - Add to `application.properties`:
+    - In `application.properties`:
       ```properties
       management.endpoints.web.exposure.include=routes,filters
       ```
 
 18. **View active routes and filters.**
-    - Access:
+    - Check:
       - `http://localhost:8080/actuator/routes`
       - `http://localhost:8080/actuator/filters`
+    - You’ll see your configured routes and filters listed.
 
 ---
 
-### **Optional Exercises**
+## **Optional Exercises**
 
 1. **Add a custom filter for response headers.**
-   - Modify outgoing responses to include a custom header.
+   - Create a GatewayFilterFactory to manipulate outbound responses.
 
 2. **Test load balancing.**
-   - Deploy multiple instances of `UserService` and test gateway load balancing.
+   - Run multiple instances of `UserService` on different ports, e.g. `8081` and `8083`.
+   - Adjust your route to a **LoadBalanced** approach (like `uri: lb://user-service`) if using Discovery or custom filters.
 
 3. **Integrate Circuit Breakers.**
-   - Add Resilience4j-based circuit breakers to specific routes.
+   - Use **Resilience4j** on specific routes to handle downstream failures gracefully.
 
 ---
+
+## **Conclusion**
+With this lab, you:
+- **Created an API Gateway** with **Spring Cloud Gateway** on **Spring Boot 3.4.1**.
+- **Configured routes** for multiple microservices (`UserService`, `ProductService`).
+- **Implemented custom filters** (logging, custom headers, rate limiting).
+- **Monitored** Gateway routes and filters via Actuator endpoints.
+
+Your gateway now provides a single entry point for your microservices, enabling consistent cross-cutting behaviors (logging, security, rate limiting, etc.) in one place.

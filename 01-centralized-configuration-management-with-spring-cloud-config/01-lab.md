@@ -1,38 +1,40 @@
-# **Lab 1: Centralized Configuration Management with Spring Cloud Config**
+# **Lab 1: Centralized Configuration Management with Spring Cloud Config (Spring Boot 3.4.1)**
 
 ## **Objective**
-Set up centralized configuration management for a microservices-based architecture using Spring Cloud Config. Learn how to create a Config Server, integrate it with Git for configuration storage, connect a client microservice to retrieve configuration dynamically, and manage environment-specific properties.
+Learn how to set up centralized configuration management for microservices using Spring Boot **3.4.1** and Spring Cloud Config. You will create:
+1. A **Config Service** that reads a local property initially.
+2. A **Config Server** that manages configurations from a Git repo.
+3. A **Config Client** that fetches and refreshes properties dynamically from the server.
 
 ---
 
 ## **Lab Steps**
 
-### **Part 1: Create a Client Microservice**
+### **Part 1: Creating the Config Service (Client) as a Simple Microservice**
 
 1. **Generate a new Spring Boot project for `ConfigService`.**
    - Visit [https://start.spring.io/](https://start.spring.io/).
    - Configure the project:
-     - **Spring Boot Version**: `3.4.1`
+     - **Spring Boot Version**: **3.4.1**
      - **Group Id**: `com.microservices`
      - **Artifact Id**: `config-service`
-     - **Name**: `ConfigService`
      - **Package Name**: `com.microservices.configservice`
-     - **Dependencies**:
+     - **Dependencies**: 
        - Spring Web
-   - Extract the zip file into a folder named `ConfigService`.
+   - Click **Generate** to download the project zip file.
+   - Extract it into a folder named `ConfigService`.
 
 2. **Import the project into your IDE.**
-   - Open your preferred IDE (e.g., IntelliJ, Eclipse, or VS Code).
-   - Import the `ConfigService` project as a Maven project.
+   - Open your IDE and import the `ConfigService` project as a Maven project.
 
-3. **Add a sample configuration in `application.properties`.**
-   - Open `src/main/resources/application.properties` and add:
+3. **Add a local property in `application.properties`.**
+   - In `src/main/resources/application.properties`, add:
      ```properties
      message=HelloWorld
      ```
 
-4. **Add a controller to retrieve configuration values.**
-   - Create `HelloController.java` in `src/main/java/com/microservices/configservice`:
+4. **Create a controller to verify the property.**
+   - In `src/main/java/com/microservices/configservice`, create `HelloController.java`:
      ```java
      package com.microservices.configservice;
 
@@ -53,27 +55,30 @@ Set up centralized configuration management for a microservices-based architectu
      }
      ```
 
-5. **Run and test the `ConfigService` application.**
-   - Start the application using:
+5. **Run and test the Config Service.**
+   - Use:
      ```bash
      ./mvnw spring-boot:run
      ```
-   - Access `http://localhost:8080/message` to verify the configuration.
+   - Access `http://localhost:8080/message`. You should see **HelloWorld**.
 
 ---
 
-### **Part 2: Setting Up the Spring Cloud Config Server**
+### **Part 2: Creating a Git Repository for Centralized Config**
 
-6. **Set up a Git repository for configuration storage.**
-   - Navigate to [GitHub](https://github.com/) and create a new repository named `config-repo`.
-   - Clone the repository locally:
+6. **Create a Git repository.**
+   - Go to [GitHub](https://github.com/) (or another Git provider).
+   - Create a repo named `config-repo` (public or private).
+
+7. **Clone the repository locally.**
+   - In a terminal:
      ```bash
      git clone https://github.com/<your-username>/config-repo.git
      cd config-repo
      ```
 
-7. **Add configuration files to the repository.**
-   - Inside the cloned repository, create the following files:
+8. **Add configuration files to the repo.**
+   - Create two files for now:
      - `application.properties`:
        ```properties
        message=Hello from Config Server!
@@ -82,19 +87,21 @@ Set up centralized configuration management for a microservices-based architectu
        ```properties
        message=Hello from Config Service!
        ```
-
-8. **Commit and push the changes.**
-   - Run the following commands:
+   - Commit and push:
      ```bash
      git add .
-     git commit -m "Added configuration files"
+     git commit -m "Initial config files"
      git push origin main
      ```
+
+---
+
+### **Part 3: Setting Up the Spring Cloud Config Server**
 
 9. **Generate a new Spring Boot project for `ConfigServer`.**
    - Visit [https://start.spring.io/](https://start.spring.io/).
    - Configure the project:
-     - **Spring Boot Version**: `3.4.1`
+     - **Spring Boot Version**: **3.4.1**
      - **Group Id**: `com.microservices`
      - **Artifact Id**: `config-server`
      - **Name**: `ConfigServer`
@@ -102,13 +109,12 @@ Set up centralized configuration management for a microservices-based architectu
      - **Dependencies**:
        - Spring Web
        - Spring Cloud Config Server
-   - Extract the zip file into a folder named `ConfigServer`.
+   - Click **Generate** and extract into `ConfigServer`.
 
-10. **Import the project into your IDE.**
-    - Import the `ConfigServer` project as a Maven project.
+10. **Import `ConfigServer` into your IDE.**
 
 11. **Enable the Config Server.**
-    - Open `ConfigServerApplication.java` in `src/main/java/com/microservices/configserver` and add:
+    - In `ConfigServerApplication.java`, add:
       ```java
       package com.microservices.configserver;
 
@@ -125,28 +131,32 @@ Set up centralized configuration management for a microservices-based architectu
       }
       ```
 
-12. **Configure the Config Server to use the Git repository.**
-    - Open `application.properties` in `src/main/resources` and add:
+12. **Configure the Config Server to use your Git repo.**
+    - In `src/main/resources/application.properties`, add:
       ```properties
       server.port=8888
+      spring.application.name=config-server
+
       spring.cloud.config.server.git.uri=https://github.com/<your-username>/config-repo
       ```
+    - Replace `<your-username>` with your actual GitHub username.
 
 13. **Run and test the Config Server.**
-    - Start the application:
+    - Use:
       ```bash
       ./mvnw spring-boot:run
       ```
-    - Test the endpoints:
-      - Default configuration: `http://localhost:8888/application/default`
-      - Service-specific configuration: `http://localhost:8888/config-service/default`
+    - Check:
+      - `http://localhost:8888/application/default`
+      - `http://localhost:8888/config-service/default`
+    - You should see your Git-based properties.
 
 ---
 
-### **Part 3: Connect `ConfigService` to `ConfigServer`**
+### **Part 4: Connecting `ConfigService` to the Config Server**
 
 14. **Add Spring Cloud Config dependency to `ConfigService`.**
-    - Add the following to `pom.xml`:
+    - In `ConfigService`’s `pom.xml`:
       ```xml
       <dependency>
           <groupId>org.springframework.cloud</groupId>
@@ -154,57 +164,82 @@ Set up centralized configuration management for a microservices-based architectu
       </dependency>
       ```
 
-15. **Configure `ConfigService` to use `ConfigServer`.**
-    - Update `application.properties`:
+15. **Configure `ConfigService` to import configs from the server.**
+    - In `application.properties` of `ConfigService`, add:
       ```properties
       spring.application.name=config-service
       spring.cloud.import=configserver:http://localhost:8888
       ```
+    - This is the updated approach for Spring Boot 3.4.x / Spring Cloud 2023.0+.
 
-16. **Restart the `ConfigService` application.**
+16. **Restart the `ConfigService`.**
+    - Again:
+      ```bash
+      ./mvnw spring-boot:run
+      ```
+    - Check logs to ensure it pulls from `config-server`.
 
-17. **Test the dynamic configuration.**
-    - Access `http://localhost:8080/message` and verify that the message is retrieved from `ConfigServer`.
+17. **Test dynamic retrieval.**
+    - Access `http://localhost:8080/message`.
+    - Now you should see `Hello from Config Service!` (based on `config-service.properties` in Git).
 
 ---
 
-### **Optional Exercise: Advanced Configuration Management**
+### **Part 5: Advanced Configuration Management**
 
-1. **Add environment-specific configurations.**
-   - Add the following files to the Git repository:
-     - `application-dev.properties`:
-       ```properties
-       message=Hello from the Dev environment!
-       ```
-     - `application-prod.properties`:
-       ```properties
-       message=Hello from the Production environment!
-       ```
+18. **Add Spring Actuator to enable refresh.**
+    - In `ConfigService`’s `pom.xml`:
+      ```xml
+      <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-actuator</artifactId>
+      </dependency>
+      ```
 
-2. **Set the active profile in `ConfigService`.**
-   - Update `application.properties`:
+19. **Expose the refresh endpoint.**
+    - In `application.properties`:
+      ```properties
+      management.endpoints.web.exposure.include=refresh
+      ```
+
+20. **Update a property in Git and refresh.**
+    - Modify `config-service.properties` in your `config-repo`:
+      ```properties
+      message=Hello from Updated Config Server!
+      ```
+    - Commit and push:
+      ```bash
+      git add .
+      git commit -m "Update message property"
+      git push origin main
+      ```
+
+21. **Trigger a refresh and verify.**
+    - Use:
+      ```bash
+      curl -X POST http://localhost:8080/actuator/refresh
+      ```
+    - Access `http://localhost:8080/message` and confirm the updated message is shown.
+
+---
+
+### **Optional Exercise**
+
+1. **Add environment-specific configuration.**
+   - In your Git repo, create `application-dev.properties` and `application-prod.properties` with different `message` values.
+   - In `ConfigService`’s `application.properties`, set:
      ```properties
      spring.profiles.active=dev
      ```
-
-3. **Test profile-specific configurations.**
-   - Restart `ConfigService` and verify the configuration at `http://localhost:8080/message`.
-
-4. **Refresh configuration without restarting.**
-   - Add Spring Actuator to `ConfigService`:
-     ```xml
-     <dependency>
-         <groupId>org.springframework.boot</groupId>
-         <artifactId>spring-boot-starter-actuator</artifactId>
-     </dependency>
-     ```
-   - Expose Actuator's refresh endpoint:
-     ```properties
-     management.endpoints.web.exposure.include=refresh
-     ```
-   - Test dynamic refresh:
-     ```bash
-     curl -X POST http://localhost:8080/actuator/refresh
-     ```
+   - Verify different `message` values for `dev` or `prod` by switching profiles.
 
 ---
+
+## **Conclusion**
+You have successfully:
+- Created a microservice (`ConfigService`) that initially used a local property.
+- Set up a Git-based `ConfigServer`.
+- Pulled configurations dynamically using **Spring Cloud Config** with **Spring Boot 3.4.1**.
+- Optionally, refreshed configurations at runtime and handled environment-specific setups.
+
+Enjoy centralized configuration management for your microservices! 

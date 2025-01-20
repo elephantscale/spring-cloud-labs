@@ -1,7 +1,7 @@
-# **Lab 17: Deploy and Orchestrate Microservices on Kubernetes with ConfigMaps**
+# **Lab 17: Deploy and Orchestrate Microservices on Kubernetes with ConfigMaps (Spring Boot 3.4.1)**
 
 ## **Objective**
-Learn how to deploy `UserService` and `OrderService` microservices on Kubernetes, externalize configurations using ConfigMaps, and manage containerized applications in a scalable and efficient way.
+Learn how to deploy two **Spring Boot 3.4.1** microservices (`UserService` and `OrderService`) to **Kubernetes** using **ConfigMaps** for externalized configuration. You will containerize each service, load images into Minikube, and configure your Pods to use environment variables from ConfigMaps.
 
 ---
 
@@ -10,11 +10,11 @@ Learn how to deploy `UserService` and `OrderService` microservices on Kubernetes
 ### **Part 1: Installing Kubernetes and Minikube**
 
 1. **Install Minikube.**
-   - Visit [Minikube Installation](https://minikube.sigs.k8s.io/docs/start/) and follow the instructions for your operating system.
+   - Visit [Minikube Installation](https://minikube.sigs.k8s.io/docs/start/) and follow the OS-specific instructions.
 
 2. **Install Kubectl.**
-   - Download Kubectl from [Kubernetes Tools](https://kubernetes.io/docs/tasks/tools/).
-   - Add it to your system's `PATH` for easy access.
+   - Download **kubectl** from [Kubernetes Tools](https://kubernetes.io/docs/tasks/tools/).
+   - Make it available in your `PATH`.
 
 3. **Verify Minikube Installation.**
    - Run:
@@ -24,17 +24,17 @@ Learn how to deploy `UserService` and `OrderService` microservices on Kubernetes
    - Confirm the installed version.
 
 4. **Start Minikube.**
-   - Launch a Minikube cluster:
+   - Launch a cluster using:
      ```bash
      minikube start --driver=docker
      ```
 
-5. **Verify Kubernetes Setup.**
-   - Check the cluster information:
+5. **Check Kubernetes Setup.**
+   - Verify the cluster information:
      ```bash
      kubectl cluster-info
      ```
-   - Confirm Minikube status:
+   - Check Minikube status:
      ```bash
      minikube status
      ```
@@ -43,34 +43,35 @@ Learn how to deploy `UserService` and `OrderService` microservices on Kubernetes
 
 ### **Part 2: Preparing Microservices**
 
-6. **Ensure Docker Images for Microservices.**
-   - Build Docker images for `UserService` and `OrderService` as done in **Lab 16**.
-   - Load the images into Minikube:
+6. **Ensure Docker Images for `UserService` and `OrderService`.**
+   - From **Lab 16**, you should have `user-service:1.0` and `order-service:1.0`.
+   - Load these images into Minikube’s local registry:
      ```bash
      minikube image load user-service:1.0
      minikube image load order-service:1.0
      ```
 
-7. **Externalize Configurations Using `application.properties`.**
-   - **For `UserService`**, use the following `application.properties`:
+7. **Externalize Configurations with `application.properties`.**
+   - For **UserService**, e.g. `src/main/resources/application.properties` might have:
      ```properties
      server.port=${SERVER_PORT:8081}
      app.name=${APP_NAME:user-service}
      database.url=${DATABASE_URL:jdbc:mysql://localhost:3306/userdb}
      ```
-   - **For `OrderService`**, use the following `application.properties`:
+   - For **OrderService**, e.g.:
      ```properties
      server.port=${SERVER_PORT:8082}
      app.name=${APP_NAME:order-service}
      user.service.url=${USER_SERVICE_URL:http://user-service:8081/users}
      ```
+   - The placeholders (`${...}`) allow environment variables to override defaults.
 
 ---
 
 ### **Part 3: Creating ConfigMaps**
 
 8. **Create a ConfigMap for `UserService`.**
-   - Save the following in a file named `user-service-configmap.yaml`:
+   - **user-service-configmap.yaml**:
      ```yaml
      apiVersion: v1
      kind: ConfigMap
@@ -83,7 +84,7 @@ Learn how to deploy `UserService` and `OrderService` microservices on Kubernetes
      ```
 
 9. **Create a ConfigMap for `OrderService`.**
-   - Save the following in a file named `order-service-configmap.yaml`:
+   - **order-service-configmap.yaml**:
      ```yaml
      apiVersion: v1
      kind: ConfigMap
@@ -95,19 +96,19 @@ Learn how to deploy `UserService` and `OrderService` microservices on Kubernetes
        USER_SERVICE_URL: "http://user-service:8081/users"
      ```
 
-10. **Apply ConfigMaps in Kubernetes.**
-    - Apply the ConfigMaps to the cluster:
-      ```bash
-      kubectl apply -f user-service-configmap.yaml
-      kubectl apply -f order-service-configmap.yaml
-      ```
+10. **Apply ConfigMaps to the cluster.**
+    ```bash
+    kubectl apply -f user-service-configmap.yaml
+    kubectl apply -f order-service-configmap.yaml
+    ```
+    - This stores the configuration in Kubernetes.
 
 ---
 
 ### **Part 4: Writing Kubernetes Manifests**
 
-11. **Create Deployment for `UserService`.**
-    - Save the following as `user-service-deployment.yaml`:
+11. **Deployment for `UserService`.**
+    - **user-service-deployment.yaml**:
       ```yaml
       apiVersion: apps/v1
       kind: Deployment
@@ -127,14 +128,15 @@ Learn how to deploy `UserService` and `OrderService` microservices on Kubernetes
             - name: user-service
               image: user-service:1.0
               ports:
-              - containerPort: 8081
+                - containerPort: 8081
               envFrom:
-              - configMapRef:
-                  name: user-service-config
+                - configMapRef:
+                    name: user-service-config
       ```
+    - `envFrom` uses `user-service-config` for environment variables.
 
-12. **Create Service for `UserService`.**
-    - Save the following as `user-service-service.yaml`:
+12. **Service for `UserService`.**
+    - **user-service-service.yaml**:
       ```yaml
       apiVersion: v1
       kind: Service
@@ -150,8 +152,8 @@ Learn how to deploy `UserService` and `OrderService` microservices on Kubernetes
         type: ClusterIP
       ```
 
-13. **Create Deployment for `OrderService`.**
-    - Save the following as `order-service-deployment.yaml`:
+13. **Deployment for `OrderService`.**
+    - **order-service-deployment.yaml**:
       ```yaml
       apiVersion: apps/v1
       kind: Deployment
@@ -171,14 +173,15 @@ Learn how to deploy `UserService` and `OrderService` microservices on Kubernetes
             - name: order-service
               image: order-service:1.0
               ports:
-              - containerPort: 8082
+                - containerPort: 8082
               envFrom:
-              - configMapRef:
-                  name: order-service-config
+                - configMapRef:
+                    name: order-service-config
       ```
+    - Also references its own ConfigMap.
 
-14. **Create Service for `OrderService`.**
-    - Save the following as `order-service-service.yaml`:
+14. **Service for `OrderService`.**
+    - **order-service-service.yaml**:
       ```yaml
       apiVersion: v1
       kind: Service
@@ -198,26 +201,24 @@ Learn how to deploy `UserService` and `OrderService` microservices on Kubernetes
 
 ### **Part 5: Deploying to Kubernetes**
 
-15. **Apply the `UserService` Deployment and Service.**
-    - Run:
-      ```bash
-      kubectl apply -f user-service-deployment.yaml
-      kubectl apply -f user-service-service.yaml
-      ```
+15. **Apply `UserService` Deployment/Service.**
+    ```bash
+    kubectl apply -f user-service-deployment.yaml
+    kubectl apply -f user-service-service.yaml
+    ```
 
-16. **Apply the `OrderService` Deployment and Service.**
-    - Run:
-      ```bash
-      kubectl apply -f order-service-deployment.yaml
-      kubectl apply -f order-service-service.yaml
-      ```
+16. **Apply `OrderService` Deployment/Service.**
+    ```bash
+    kubectl apply -f order-service-deployment.yaml
+    kubectl apply -f order-service-service.yaml
+    ```
 
-17. **Verify the Pods and Services.**
-    - List all Pods:
+17. **Verify Pods and Services.**
+    - Check Pods:
       ```bash
       kubectl get pods
       ```
-    - List all Services:
+    - Check Services:
       ```bash
       kubectl get services
       ```
@@ -226,22 +227,23 @@ Learn how to deploy `UserService` and `OrderService` microservices on Kubernetes
 
 ### **Part 6: Testing and Scaling**
 
-18. **Test the Services.**
-    - Access `OrderService` via port-forwarding:
+18. **Test Services with Port-Forwarding.**
+    - For `OrderService`, for example:
       ```bash
       kubectl port-forward service/order-service 8082:8082
       ```
-    - Open a browser or Postman to call:
+    - Then open:
       ```
       http://localhost:8082/orders
       ```
+    - The service should call `UserService` by name `user-service` inside the cluster.
 
-19. **Scale the Deployments.**
-    - Scale `OrderService` to 3 replicas:
+19. **Scale the `OrderService` deployment.**
+    - e.g., to 3 replicas:
       ```bash
       kubectl scale deployment order-service --replicas=3
       ```
-    - Verify the updated Pods:
+    - Check new pods:
       ```bash
       kubectl get pods -l app=order-service
       ```
@@ -255,15 +257,24 @@ Learn how to deploy `UserService` and `OrderService` microservices on Kubernetes
 
 ---
 
-### **Optional Exercises**
+## **Optional Exercises**
 
-1. **Enable Horizontal Pod Autoscaling.**
-   - Configure Kubernetes HPA for `OrderService`.
+1. **Enable Horizontal Pod Autoscaling (HPA).**
+   - Create an HPA for `OrderService` that scales based on CPU usage.
 
 2. **Add ConfigMap Updates.**
-   - Update ConfigMaps and observe how Pods reload configurations dynamically.
+   - Modify the ConfigMaps to change environment variables and see if the pods pick up changes (requires re-deployment or additional strategies).
 
 3. **Simulate Failures.**
-   - Kill a Pod and observe Kubernetes restarting it automatically.
+   - Kill a running pod (`kubectl delete pod <pod-name>`) and observe Kubernetes automatically recreating it.
 
 ---
+
+## **Conclusion**
+In this lab, you have:
+- **Deployed** two microservices (`UserService`, `OrderService`) to Kubernetes with **ConfigMaps** for externalized config.
+- **Managed** container images via **Minikube** (`minikube image load`).
+- **Demonstrated** how to scale and test them with port-forwarding.
+- **Simplified updates** to environment variables with ConfigMaps, providing more flexibility and best practices for dynamic configurations in a Kubernetes environment!
+
+Enjoy orchestrating microservices at scale with Kubernetes!

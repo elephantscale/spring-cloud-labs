@@ -1,7 +1,7 @@
-# **Lab 5: Use Zookeeper for Distributed Configuration and Synchronization**
+# **Lab 5: Use Zookeeper for Distributed Configuration and Synchronization (Spring Boot 3.4.1)**
 
 ## **Objective**
-Set up Apache Zookeeper as a configuration and synchronization server. Learn how to store and retrieve configurations, register microservices, and explore Zookeeper's capabilities for distributed systems.
+Learn how to set up **Apache Zookeeper** to register microservices (Spring Boot **3.4.1**) for discovery and explore its **KV store** for dynamic configuration. Zookeeper offers distributed synchronization capabilities suitable for microservices needing coordination or shared config.
 
 ---
 
@@ -10,53 +10,52 @@ Set up Apache Zookeeper as a configuration and synchronization server. Learn how
 ### **Part 1: Installing and Running Zookeeper**
 
 1. **Download Zookeeper.**
-   - Visit [https://zookeeper.apache.org/releases.html](https://zookeeper.apache.org/releases.html) and download the latest stable release (e.g., `zookeeper-3.8.2`).
+   - Visit [Zookeeper Releases](https://zookeeper.apache.org/releases.html) and download the latest stable release (e.g., `zookeeper-3.8.2`).
 
-2. **Extract the downloaded archive.**
+2. **Extract the Zookeeper archive.**
    - **Windows**:
-     - Extract the file (e.g., `apache-zookeeper-3.8.2-bin.tar.gz`) to a folder such as `C:\Zookeeper`.
+     - Extract (e.g., `apache-zookeeper-3.8.2-bin.tar.gz`) into `C:\Zookeeper`.
    - **macOS/Linux**:
-     - Extract the file to a suitable directory:
+     - Extract:
        ```bash
        tar -xvzf apache-zookeeper-3.8.2-bin.tar.gz -C ~/Zookeeper
        ```
 
 3. **Set up the Zookeeper configuration.**
-   - Navigate to the `conf` folder:
-     ```bash
-     cd [Zookeeper-extracted-folder]/conf
-     ```
-   - Copy `zoo_sample.cfg` and rename it to `zoo.cfg`:
+   - In the `conf` folder:
      ```bash
      cp zoo_sample.cfg zoo.cfg
      ```
-
-4. **Update the configuration file.**
-   - Open `zoo.cfg` in a text editor.
-   - Ensure the `dataDir` points to a valid directory:
+   - Edit `zoo.cfg` to set a valid data directory:
      ```properties
      dataDir=/path/to/Zookeeper/data
      ```
-   - Create the `data` directory:
+   - Create that directory:
      ```bash
      mkdir -p /path/to/Zookeeper/data
      ```
 
-5. **Start the Zookeeper server.**
-   - Navigate to the Zookeeper folder and run:
+4. **Start the Zookeeper server.**
+   - **macOS/Linux** example:
      ```bash
+     cd ~/Zookeeper/apache-zookeeper-3.8.2-bin
      bin/zkServer.sh start
      ```
+   - **Windows** (in Powershell or Command Prompt):
+     ```ps1
+     cd C:\Zookeeper\apache-zookeeper-3.8.2-bin
+     .\bin\zkServer.cmd
+     ```
 
-6. **Verify Zookeeper is running.**
-   - Check the server's status:
+5. **Verify Zookeeper is running.**
+   - Check status:
      ```bash
      bin/zkServer.sh status
      ```
-   - Confirm that the server is running and in standalone mode.
+   - It should say "standalone mode" and "running" if successful.
 
-7. **Test Zookeeper using the CLI.**
-   - Open the Zookeeper shell:
+6. **Test Zookeeper using the CLI.**
+   - Start the ZK shell:
      ```bash
      bin/zkCli.sh
      ```
@@ -68,55 +67,57 @@ Set up Apache Zookeeper as a configuration and synchronization server. Learn how
      ```bash
      get /config
      ```
-   - Confirm that the value `Hello Zookeeper` is displayed.
+   - Confirm it shows `Hello Zookeeper`.
 
 ---
 
-### **Part 2: Setting Up the Spring Boot Application**
+### **Part 2: Setting Up the Zookeeper-Enabled Microservice**
 
-8. **Generate a new Spring Boot project using Spring Initializr.**
+7. **Generate a new Spring Boot project for `ZookeeperService`.**
    - Visit [https://start.spring.io/](https://start.spring.io/).
-   - Configure the project:
-     - **Spring Boot Version**: Select **3.4.1**.
+   - Configure:
+     - **Spring Boot Version**: **3.4.1**
      - **Group Id**: `com.microservices`
      - **Artifact Id**: `zookeeper-service`
      - **Name**: `ZookeeperService`
+     - **Package Name**: `com.microservices.zookeeperservice`
      - **Dependencies**:
        - Spring Web
        - Spring Cloud Zookeeper Discovery
        - Spring Boot Actuator
-   - Click **Generate** to download the project zip file.
-   - Extract the downloaded zip file into a folder named `ZookeeperService`.
+   - Extract into `ZookeeperService`.
 
-9. **Import the project into your IDE.**
+8. **Import the project into your IDE.**
 
-10. **Enable Zookeeper Discovery.**
-    - Open `ZookeeperServiceApplication.java` in the `src/main/java/com/microservices/zookeeperservice` folder.
-    - Add the `@EnableDiscoveryClient` annotation:
-      ```java
-      import org.springframework.boot.SpringApplication;
-      import org.springframework.boot.autoconfigure.SpringBootApplication;
-      import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+9. **Enable Zookeeper Discovery.**
+   - In `ZookeeperServiceApplication.java`:
+     ```java
+     package com.microservices.zookeeperservice;
 
-      @SpringBootApplication
-      @EnableDiscoveryClient
-      public class ZookeeperServiceApplication {
-          public static void main(String[] args) {
-              SpringApplication.run(ZookeeperServiceApplication.class, args);
-          }
-      }
-      ```
+     import org.springframework.boot.SpringApplication;
+     import org.springframework.boot.autoconfigure.SpringBootApplication;
+     import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
-11. **Configure Zookeeper in `application.properties`.**
-    - Create `application.properties` in `src/main/resources` and add:
+     @SpringBootApplication
+     @EnableDiscoveryClient
+     public class ZookeeperServiceApplication {
+         public static void main(String[] args) {
+             SpringApplication.run(ZookeeperServiceApplication.class, args);
+         }
+     }
+     ```
+
+10. **Configure Zookeeper in `application.properties`.**
+    - In `src/main/resources/application.properties`:
       ```properties
       spring.application.name=zookeeper-service
       spring.cloud.zookeeper.connect-string=localhost:2181
       server.port=8083
       ```
+    - Port **2181** is the default Zookeeper port.
 
-12. **Add a REST endpoint to the service.**
-    - Create `ZookeeperController.java` in the `src/main/java/com/microservices/zookeeperservice` folder:
+11. **Add a REST endpoint.**
+    - In `src/main/java/com/microservices/zookeeperservice/ZookeeperController.java`:
       ```java
       package com.microservices.zookeeperservice;
 
@@ -133,41 +134,67 @@ Set up Apache Zookeeper as a configuration and synchronization server. Learn how
       }
       ```
 
-13. **Run the `ZookeeperService` application.**
-    - Start the application:
+12. **Run the `ZookeeperService`.**
+    - From the `ZookeeperService` directory:
       ```bash
       ./mvnw spring-boot:run
       ```
+    - If everything works, Zookeeper logs should show registration of **zookeeper-service**.
 
-14. **Verify service registration in Zookeeper.**
-    - Open the Zookeeper CLI and run:
+13. **Verify service registration.**
+    - Open another terminal:
+      ```bash
+      bin/zkCli.sh
+      ```
+    - Run:
       ```bash
       ls /services
       ```
-    - Confirm that `zookeeper-service` is listed.
+    - You should see `zookeeper-service`.
 
 ---
 
 ### **Part 3: Adding Another Service**
 
-15. **Generate a new Spring Boot project for the `ProductService`.**
-    - Repeat steps 8 and 9, using the following configuration:
+14. **Generate a new Spring Boot project: `ProductService`.**
+    - Same approach:
       - **Artifact Id**: `product-service`
-      - **Name**: `ProductService`.
+      - **Name**: `ProductService`
+      - **Package Name**: `com.microservices.productservice`
+      - **Dependencies**: 
+        - Spring Web
+        - Spring Cloud Zookeeper Discovery
+        - Spring Boot Actuator
+    - Extract into `ProductService`.
 
-16. **Enable Zookeeper Discovery for `ProductService`.**
-    - Add the `@EnableDiscoveryClient` annotation in `ProductServiceApplication.java`.
+15. **Enable Zookeeper Discovery.**
+    - In `ProductServiceApplication.java`:
+      ```java
+      package com.microservices.productservice;
 
-17. **Configure Zookeeper for `ProductService`.**
-    - Create `application.properties` in `src/main/resources` and add:
+      import org.springframework.boot.SpringApplication;
+      import org.springframework.boot.autoconfigure.SpringBootApplication;
+      import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
+      @SpringBootApplication
+      @EnableDiscoveryClient
+      public class ProductServiceApplication {
+          public static void main(String[] args) {
+              SpringApplication.run(ProductServiceApplication.class, args);
+          }
+      }
+      ```
+
+16. **Configure Zookeeper for `ProductService`.**
+    - In `src/main/resources/application.properties`:
       ```properties
       spring.application.name=product-service
       spring.cloud.zookeeper.connect-string=localhost:2181
       server.port=8084
       ```
 
-18. **Add a REST endpoint for `ProductService`.**
-    - Create `ProductController.java` in `src/main/java/com/microservices/productservice`:
+17. **Add a REST endpoint for `ProductService`.**
+    - In `ProductController.java`:
       ```java
       package com.microservices.productservice;
 
@@ -184,31 +211,33 @@ Set up Apache Zookeeper as a configuration and synchronization server. Learn how
       }
       ```
 
-19. **Run the `ProductService` application.**
-    - Start the application:
+18. **Run `ProductService`.**
+    - Similar to before:
       ```bash
       ./mvnw spring-boot:run
       ```
+    - Check logs for any registration errors.
 
-20. **Verify service registration in Zookeeper.**
-    - Open the Zookeeper CLI and run:
+19. **Verify `ProductService` in Zookeeper.**
+    - In the ZK CLI:
       ```bash
       ls /services
       ```
-    - Confirm that both `zookeeper-service` and `product-service` are listed.
+    - Should now list `zookeeper-service` and `product-service`.
 
 ---
 
 ### **Part 4: Testing Configuration Management**
 
-21. **Update Zookeeper’s KV data.**
-    - In the Zookeeper CLI, update the value of the `/config` node:
+20. **Update Zookeeper’s KV data.**
+    - In the ZK CLI:
       ```bash
       set /config "Updated Configuration Value"
       ```
+    - This changes the node’s data at path `/config`.
 
-22. **Retrieve the updated configuration in `ZookeeperService`.**
-    - Modify the `ZookeeperController` to dynamically fetch the value:
+21. **Retrieve the updated configuration in `ZookeeperService`.**
+    - Modify `ZookeeperController`:
       ```java
       package com.microservices.zookeeperservice;
 
@@ -229,19 +258,31 @@ Set up Apache Zookeeper as a configuration and synchronization server. Learn how
       }
       ```
 
-23. **Test the `/config` endpoint.**
-    - Open a browser or use Postman to access:
+22. **Test the `/config` endpoint.**
+    - Access:
       ```
       http://localhost:8083/config
       ```
-    - Verify that the updated configuration value is displayed.
+    - Should display **Updated Configuration Value** if `/config` node is read as a property.
 
 ---
 
-### **Optional Exercises**
+## **Optional Exercises**
 
 1. **Simulate service failures.**
-   - Stop one of the services (e.g., `ProductService`) and verify how Zookeeper handles deregistration.
+   - Kill one service. ZK should reflect it in the ephemeral node structure.
 
 2. **Add environment-specific configurations.**
-   - Store configurations for multiple environments (`/config/dev` and `/config/prod`) and test retrieval based on active profiles.
+   - E.g., `/config/dev` vs. `/config/prod`. Use profiles or direct property binding to read them.
+
+3. **Integrate watchers.**
+   - Zookeeper watchers let you get notified of config changes in real-time.
+
+---
+
+## **Conclusion**
+By completing this lab, you have:
+- **Installed and ran** Zookeeper locally.
+- **Registered** multiple Spring Boot 3.4.1 services using **Spring Cloud Zookeeper Discovery**.
+- **Explored the KV store** to set and retrieve dynamic configurations, which microservices can consume at runtime.
+- Gained an understanding of how Zookeeper can provide **service discovery and configuration management**, similar to Eureka or Consul, but with additional synchronization primitives.

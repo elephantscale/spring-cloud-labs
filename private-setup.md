@@ -3,4 +3,4 @@
 * VM
 * [https://labs.protechtraining.com](https://labs.protechtraining.com)
 * Username: mkerzner
-* Password: 
+* Password: Spr!ng2025

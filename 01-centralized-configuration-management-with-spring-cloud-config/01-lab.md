@@ -13,7 +13,7 @@ Learn how to set up centralized configuration management for microservices using
 ### **Part 1: Creating the Config Service (Client) as a Simple Microservice**
 
 1. **Generate a new Spring Boot project for `ConfigService`.**
-   - Visit [https://start.spring.io/](https://start.spring.io/).
+   - Open in a new tab (Right-click+R) [https://start.spring.io/](https://start.spring.io/).
    - Configure the project:
      - **Spring Boot Version**: **3.4.4**
      - **Group Id**: `com.microservices`

@@ -99,9 +99,9 @@ Learn how to set up centralized configuration management for microservices using
 ### **Part 3: Setting Up the Spring Cloud Config Server**
 
 9. **Generate a new Spring Boot project for `ConfigServer`.**
-   - Visit [https://start.spring.io/](https://start.spring.io/).
+   - Open in a new tab (Right-click+R) [https://start.spring.io/](https://start.spring.io/).
    - Configure the project:
-     - **Spring Boot Version**: **3.4.1**
+     - **Spring Boot Version**: **3.4.4**
      - **Group Id**: `com.microservices`
      - **Artifact Id**: `config-server`
      - **Name**: `ConfigServer`

@@ -25,7 +25,7 @@ Learn how to set up centralized configuration management for microservices using
    - Extract it into a folder named `ConfigService`.
 
 2. **Import the project into your IDE.**
-   - Open your IDE and import the `ConfigService` project as a Maven project.
+   - Open your IDE **(IntelliJ)** and import the `ConfigService` project as a Maven project.
 
 3. **Add a local property in `application.properties`.**
    - In `src/main/resources/application.properties`, add:

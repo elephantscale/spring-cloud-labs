@@ -1,4 +1,4 @@
-# **Lab 1: Centralized Configuration Management with Spring Cloud Config (Spring Boot 3.4.1)**
+# **Lab 1: Centralized Configuration Management with Spring Cloud Config (Spring Boot 3.4.4)**
 
 ## **Objective**
 Learn how to set up centralized configuration management for microservices using Spring Boot **3.4.4** and Spring Cloud Config. You will create:

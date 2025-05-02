@@ -1,7 +1,7 @@
-# **Lab 17: Deploy and Orchestrate Microservices on Kubernetes with ConfigMaps (Spring Boot 3.4.1)**
+# **Lab 17: Deploy and Orchestrate Microservices on Kubernetes with ConfigMaps (Spring Boot 3.4.5)**
 
 ## **Objective**
-Learn how to deploy two **Spring Boot 3.4.1** microservices (`UserService` and `OrderService`) to **Kubernetes** using **ConfigMaps** for externalized configuration. You will containerize each service, load images into Minikube, and configure your Pods to use environment variables from ConfigMaps.
+Learn how to deploy two **Spring Boot 3.4.5** microservices (`UserService` and `OrderService`) to **Kubernetes** using **ConfigMaps** for externalized configuration. You will containerize each service, load images into Minikube, and configure your Pods to use environment variables from ConfigMaps.
 
 ---
 
@@ -11,6 +11,7 @@ Learn how to deploy two **Spring Boot 3.4.1** microservices (`UserService` and `
 
 1. **Install Minikube.**
    - Visit [Minikube Installation](https://minikube.sigs.k8s.io/docs/start/) and follow the OS-specific instructions.
+   - Make it available in your `PATH`.
 
 2. **Install Kubectl.**
    - Download **kubectl** from [Kubernetes Tools](https://kubernetes.io/docs/tasks/tools/).

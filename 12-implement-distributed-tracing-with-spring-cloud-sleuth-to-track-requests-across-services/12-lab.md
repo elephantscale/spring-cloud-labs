@@ -110,7 +110,7 @@ Same as UserService: File > Open or Import Project and select `order-service`.
 
 ### Step 10: Add Tracing Dependencies
 - Same two dependencies as `UserService` in the `pom.xml`
-- Add the micrometer-observation dependency as well
+- Add the `micrometer-observation` dependency as well
 ```
 <dependency>
   <groupId>io.micrometer</groupId>

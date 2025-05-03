@@ -1,234 +1,270 @@
-# **Lab 13: Use Zipkin to Collect, Analyze, and Visualize Traces in Your Microservices Architecture (Spring Boot 3.4.1)**
+
+# **Lab 13: Distributed Tracing on Spring Boot 3.4.5 with Micrometer Tracing (Brave) + Zipkin**
+
+> **Why this lab was updated**  
+> Spring Cloud Sleuth is no longer supported on Spring Boot 3.x.  
+> Starting with Boot 3.0, use **Micrometer Tracing** (with the Brave bridge) to generate spans and export them to **Zipkin**.
+
+---
 
 ## **Objective**
-Learn how to integrate **Spring Cloud Sleuth** with **Zipkin** to collect and visualize distributed traces in a **Spring Boot 3.4.1** microservices architecture. You will configure two services (`UserService` and `OrderService`) to send trace data to a local Zipkin server and analyze end-to-end request flows via the Zipkin dashboard.
+
+Configure two Spring Boot 3.4.5 microservices (`UserService` and `OrderService`) so that:
+
+* Every incoming HTTP request and outgoing WebClient call is wrapped in a **span**.  
+* Spans are sent to a locally running **Zipkin** collector (`localhost:9411`).  
+* The Zipkin UI visualises complete, end‑to‑end traces.
 
 ---
 
 ## **Lab Steps**
 
-### **Part 1: Installing and Running Zipkin**
+### **Part 1 – Run Zipkin locally**
 
-1. **Ensure Java is installed (for running Zipkin).**
-   - Check Java:
-     ```bash
-     java -version
-     ```
-   - If not installed, install **JDK 17** (e.g., from [AdoptOpenJDK](https://adoptium.net/)).
+1. **Confirm Java 17 + is installed**
 
-2. **Download the Zipkin Server.**
-   - Visit [Zipkin Quickstart](https://zipkin.io/pages/quickstart) and download the latest Zipkin JAR file (e.g., `zipkin-server-2.x.x-exec.jar`).
-   - Save it in a folder like `~/zipkin` or `C:\Zipkin`.
+   ```bash
+   java -version
+   ```
 
-3. **Run the Zipkin server locally.**
-   - From the directory with the Zipkin JAR:
-     ```bash
-     java -jar zipkin-server-2.x.x-exec.jar
-     ```
-   - Zipkin listens on **port 9411** by default.
+2. **Download or run Zipkin**
 
-4. **Verify Zipkin is running.**
-   - Open:
-     ```
-     http://localhost:9411
-     ```
-   - The Zipkin dashboard should appear.
+   *Fastest:*  
+   ```bash
+   docker run -d -p 9411:9411 openzipkin/zipkin
+   ```
+   or download `zipkin-server-*-exec.jar` from the [Zipkin quick‑start page](https://zipkin.io/pages/quickstart) and run  
+   ```bash
+   java -jar zipkin-server-*-exec.jar
+   ```
+
+3. **Verify Zipkin UI**
+
+   Open <http://localhost:9411>. You should see the search page.
 
 ---
 
-### **Part 2: Configuring the Producer Microservice (`UserService`)**
+### **Part 2 – Create the producer microservice (**UserService**)**
 
-5. **Generate a new Spring Boot project for `UserService`.**
-   - **Spring Boot Version**: **3.4.1**
-   - **Group Id**: `com.microservices`
-   - **Artifact Id**: `user-service`
-   - **Name**: `UserService`
-   - **Dependencies**:
-     - Spring Web
-     - Spring Boot Actuator
-     - Spring Cloud Sleuth
-   - Extract into a folder named `UserService`.
+1. **Generate project (Spring Initializr)**
 
-6. **Import `UserService`** into your IDE.
+| Setting            | Value                          |
+|--------------------|--------------------------------|
+| Spring Boot        | 3.4.5                          |
+| Group              | `com.microservices`            |
+| Artifact / Name    | `user-service`                 |
+| Dependencies       | *Spring Web*, *Spring Boot Actuator* |
 
-7. **Configure `UserService` to send traces to Zipkin.**
-   - In `src/main/resources/application.properties`:
-     ```properties
-     server.port=8081
+2. **Add Micrometer‑Tracing + Zipkin dependencies**
 
-     spring.application.name=user-service
-     spring.zipkin.base-url=http://localhost:9411
-     spring.sleuth.sampler.probability=1.0
-     ```
-   - `sampler.probability=1.0` means all requests are traced.
+`pom.xml` → inside `<dependencies>`:
 
-8. **Create a REST controller in `UserService`.**
-   - `UserController.java`:
-     ```java
-     package com.microservices.userservice;
+```xml
+<!-- Micrometer Tracing API bridged to Brave -->
+<dependency>
+    <groupId>io.micrometer</groupId>
+    <artifactId>micrometer-tracing-bridge-brave</artifactId>
+</dependency>
 
-     import org.springframework.web.bind.annotation.GetMapping;
-     import org.springframework.web.bind.annotation.RestController;
+<!-- Reporter that ships spans to Zipkin -->
+<dependency>
+    <groupId>io.zipkin.reporter2</groupId>
+    <artifactId>zipkin-reporter-brave</artifactId>
+</dependency>
+```
 
-     @RestController
-     public class UserController {
+3. **Configure tracing & span‑aware logging**
 
-         @GetMapping("/users")
-         public String getUsers() {
-             return "List of users from UserService";
-         }
-     }
-     ```
+`src/main/resources/application.properties`:
 
-9. **Run `UserService`.**
-   - From the `UserService` directory:
-     ```bash
-     ./mvnw spring-boot:run
-     ```
-   - It listens on **8081**.
+```properties
+server.port=8081
+spring.application.name=user-service
 
-10. **Test the `/users` endpoint.**
-    - Access:
-      ```
-      http://localhost:8081/users
-      ```
-    - Confirm it returns `"List of users from UserService"`.
+# Send every span to Zipkin
+management.tracing.sampling.probability=1.0
+management.zipkin.tracing.endpoint=http://localhost:9411/api/v2/spans
 
----
+# Include traceId / spanId in every log line
+logging.pattern.level=%5p [${spring.application.name},traceId=%X{traceId},spanId=%X{spanId}]
+```
 
-### **Part 3: Configuring the Consumer Microservice (`OrderService`)**
+4. **Create a simple REST endpoint**
 
-11. **Generate a new Spring Boot project for `OrderService`.**
-    - **Artifact Id**: `order-service`
-    - **Dependencies**:
-      - Spring Web
-      - Spring Boot Actuator
-      - Spring Cloud Sleuth
-      - Spring WebClient
-    - Extract into a folder named `OrderService`.
+`UserController.java`
 
-12. **Import `OrderService`** into your IDE.
+```java
+package com.microservices.userservice;
 
-13. **Configure `OrderService` to send traces to Zipkin.**
-    - In `src/main/resources/application.properties`:
-      ```properties
-      server.port=8082
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-      spring.application.name=order-service
-      spring.zipkin.base-url=http://localhost:9411
-      spring.sleuth.sampler.probability=1.0
-      ```
+@RestController
+public class UserController {
+    @GetMapping("/users")
+    public String getUsers() {
+        return "List of users from UserService";
+    }
+}
+```
 
-14. **Create a REST controller in `OrderService`.**
-    - `OrderController.java`:
-      ```java
-      package com.microservices.orderservice;
+5. **Run `UserService`**
 
-      import org.springframework.beans.factory.annotation.Autowired;
-      import org.springframework.web.bind.annotation.GetMapping;
-      import org.springframework.web.bind.annotation.RestController;
-      import org.springframework.web.reactive.function.client.WebClient;
+```bash
+./mvnw spring-boot:run
+```
 
-      @RestController
-      public class OrderController {
-
-          @Autowired
-          private WebClient.Builder webClientBuilder;
-
-          @GetMapping("/orders")
-          public String getOrders() {
-              String users = webClientBuilder.build()
-                      .get()
-                      .uri("http://localhost:8081/users")
-                      .retrieve()
-                      .bodyToMono(String.class)
-                      .block();
-
-              return "Orders from OrderService and Users: " + users;
-          }
-      }
-      ```
-
-15. **Add WebClient configuration.**
-    - In `OrderServiceApplication.java`:
-      ```java
-      package com.microservices.orderservice;
-
-      import org.springframework.boot.SpringApplication;
-      import org.springframework.boot.autoconfigure.SpringBootApplication;
-      import org.springframework.context.annotation.Bean;
-      import org.springframework.web.reactive.function.client.WebClient;
-
-      @SpringBootApplication
-      public class OrderServiceApplication {
-
-          public static void main(String[] args) {
-              SpringApplication.run(OrderServiceApplication.class, args);
-          }
-
-          @Bean
-          public WebClient.Builder webClientBuilder() {
-              return WebClient.builder();
-          }
-      }
-      ```
-
-16. **Run `OrderService`.**
-    - From `OrderService`:
-      ```bash
-      ./mvnw spring-boot:run
-      ```
-    - It listens on **8082**.
-
-17. **Test the `/orders` endpoint.**
-    - Access:
-      ```
-      http://localhost:8082/orders
-      ```
-    - It retrieves data from `UserService` on `8081`.
+Check the console—each log line now prints `traceId` and `spanId`.
 
 ---
 
-### **Part 4: Visualizing Traces in Zipkin**
+### **Part 3 – Create the consumer microservice (**OrderService**)**
 
-18. **Generate traffic between the services.**
-    - Hit `http://localhost:8082/orders` multiple times.
+1. **Generate project**
 
-19. **Access the Zipkin dashboard.**
-    - Go to:
-      ```
-      http://localhost:9411
-      ```
-    - You should see the **Zipkin UI**.
+| Setting            | Value                                       |
+|--------------------|---------------------------------------------|
+| Artifact / Name    | `order-service`                             |
+| Dependencies       | *Spring Web*, *Spring Boot Actuator*, *Spring Reactive Web* |
 
-20. **Search for traces.**
-    - Click **Find Traces** on the Zipkin dashboard.
-    - Look for spans involving `order-service` and `user-service`.
+2. **Add Micrometer‑Tracing + Zipkin dependencies**
 
-21. **Analyze a specific trace.**
-    - Click a trace to see details, including:
-      - **Spans** (segments of the request)
-      - **Timing** (latency)
-      - **Service dependencies**.
+`pom.xml` (same two as UserService):
+
+```xml
+<dependency>
+    <groupId>io.micrometer</groupId>
+    <artifactId>micrometer-tracing-bridge-brave</artifactId>
+</dependency>
+<dependency>
+    <groupId>io.zipkin.reporter2</groupId>
+    <artifactId>zipkin-reporter-brave</artifactId>
+</dependency>
+```
+
+3. **Configure tracing & logging**
+
+`src/main/resources/application.properties`:
+
+```properties
+server.port=8082
+spring.application.name=order-service
+
+management.tracing.sampling.probability=1.0
+management.zipkin.tracing.endpoint=http://localhost:9411/api/v2/spans
+
+logging.pattern.level=%5p [${spring.application.name},traceId=%X{traceId},spanId=%X{spanId}]
+```
+
+4. **Register a WebClient bean**
+
+`OrderServiceApplication.java`
+
+```java
+package com.microservices.orderservice;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.reactive.function.client.WebClient;
+
+@SpringBootApplication
+public class OrderServiceApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(OrderServiceApplication.class, args);
+    }
+
+    @Bean
+    public WebClient.Builder webClientBuilder() {
+        return WebClient.builder();
+    }
+}
+```
+
+5. **Create the REST controller**
+
+`OrderController.java`
+
+```java
+package com.microservices.orderservice;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.reactive.function.client.WebClient;
+
+@RestController
+public class OrderController {
+
+    @Autowired
+    private WebClient.Builder webClientBuilder;
+
+    @GetMapping("/orders")
+    public String getOrders() {
+        String users = webClientBuilder.build()
+                .get()
+                .uri("http://localhost:8081/users")
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+
+        return "Orders from OrderService and Users: " + users;
+    }
+}
+```
+
+6. **Run `OrderService`**
+
+```bash
+./mvnw spring-boot:run
+```
+
+Notice the same `traceId` appears in both `OrderService` and `UserService` logs.
+
+---
+
+### **Part 4 – Visualise traces in Zipkin**
+
+1. **Generate traffic**
+
+```bash
+curl http://localhost:8082/orders
+```
+
+Run a few times.
+
+2. **Open Zipkin UI** (<http://localhost:9411>)
+
+3. **Click “Run Query / Find Traces”**
+
+You should see traces that include:
+
+* `order-service (SERVER)`  
+* `order-service → user-service (CLIENT)`  
+* `user-service (SERVER)`
+
+4. **Inspect a trace**
+
+The timeline view displays latency for each span and the relationship between services.
 
 ---
 
 ## **Optional Exercises**
 
-1. **Add a third microservice.**
-   - E.g., `ProductService` calls `UserService`. See how Zipkin links all three in a single trace.
+* Add a third microservice (e.g., `ProductService`) to create a three‑hop trace.  
+* Introduce a random delay in `UserService` and observe it immediately in Zipkin.  
+* Experiment with lower sampling rates by reducing `management.tracing.sampling.probability`.
 
-2. **Simulate service failure or slowdown.**
-   - Make `UserService` throw an exception or introduce a delay and observe the trace in Zipkin.
+---
+## **Troubleshooting**
 
-3. **Experiment with sampling rates.**
-   - Adjust `spring.sleuth.sampler.probability` to reduce overhead in production scenarios.
+| Symptom | Likely cause | Fix |
+|---------|--------------|-----|
+| Zipkin UI is blank | Wrong port (Zipkin not on 9411) or services not sending data | Ensure Zipkin is running, verify `management.zipkin.tracing.endpoint`, watch service logs for “Sending spans…” |
+| `Zipkin` port already in use | Another Zipkin instance running | Kill old process or start Zipkin on a different port (`--server.port=9412`) and update the endpoint property |
+| Logs show no `traceId` / `spanId` | Sleuth still on classpath or missing Micrometer bridge | Remove `spring-cloud-sleuth-*` dependencies, keep only Micrometer Tracing + Brave |
 
 ---
 
-## **Conclusion**
-By finishing this lab, you have:
-- **Installed and ran Zipkin** locally on **port 9411**.
-- **Configured two microservices** (`UserService`, `OrderService`) with **Spring Cloud Sleuth** to send trace data to Zipkin.
-- **Observed** trace data (service calls, latencies, errors) in the **Zipkin dashboard**.
-- **Validated** how distributed tracing simplifies root cause analysis and performance tuning across microservices.
+With Micrometer Tracing in place, you now have production‑ready distributed tracing on Spring Boot 3.4.5, fully compatible with Zipkin.

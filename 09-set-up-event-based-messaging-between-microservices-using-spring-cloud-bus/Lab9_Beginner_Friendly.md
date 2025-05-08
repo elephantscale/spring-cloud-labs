@@ -48,6 +48,10 @@ Everything is done on **Windows 10/11**, using **PowerShell (Administrator)** a
 | Step | Window | Command (run in PowerShell **Admin**) | Expected Output |
 |------|--------|---------------------------------------|-----------------|
 | **A – Prepare** | — | <pre>New-Item -ItemType Directory -Force -Path C:\kafka  # create folder\n# Unzip kafka_2.12-3.9.0.zip to C:\kafka (Explorer → Right-click → Extract All)</pre> | Folder **C:\kafka\kafka_2.12-3.9.0** exists |
+Updating the zookeeper timeout before starting
+- Get-Content 'C:\kafka\kafka_2.12-3.9.0\config\server.properties' | Where-Object { $_ -notmatch '^\s*zookeeper\.session\.timeout\.ms=' } | Set-Content 'C:\kafka\kafka_2.12-3.9.0\config\server.properties'
+- Add-Content 'C:\kafka\kafka_2.12-3.9.0\config\server.properties' "`nzookeeper.session.timeout.ms=30000"
+
 | **B – Start ZooKeeper** | 1 | <pre>cd C:\kafka\kafka_2.12-3.9.0\n.\bin\windows\zookeeper-server-start.bat ..\config\zookeeper.properties</pre> | Last line ends with<br>`binding to port 0.0.0.0:2181` |
 | **C – Start Kafka Broker** | 2 | <pre>cd C:\kafka\kafka_2.12-3.9.0\n.\bin\windows\kafka-server-start.bat ..\config\server.properties</pre> | Line shows<br>`[KafkaServer id=0] started` |
 | **D – List Topics** | 3 | <pre>cd C:\kafka\kafka_2.12-3.9.0\n.\bin\windows\kafka-topics.bat --list --bootstrap-server localhost:9092</pre> | Blank list **or**<br>`__consumer_offsets` |

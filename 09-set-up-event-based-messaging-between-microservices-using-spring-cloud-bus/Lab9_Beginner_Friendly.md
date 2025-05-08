@@ -35,7 +35,7 @@ Everything is done on **Windows 10/11**, using **PowerShell (Administrator)** a
 |------|------------|-----------------|
 | **1** | Sign in to <https://github.com> (or create an account). Grab your **username** from the top-right avatar — you’ll replace `<your-username>` below. | — |
 | **2** | Click **➕ New → New repository**<br>• **Name** → `config-repo`<br>• **☑ Add a README** (checked)<br>Click **Create repository** | Repo page shows **README.md** |
-| **3** | Click **Add file → Create new file**<br>• **Filename** → `user-service.properties`<br>• Paste the snippet below, then click **Commit new file**<br><br>```<br>message=Hello from Config Server!<br>``` | File appears in the repo |
+| **3** | Click **Add file → Create new file**<br>• **Filename** → `user-service.properties`<br>• Paste the snippet below, then click **Commit new file**<br><br>```message=Hello from Config Server!``` | File appears in the repo |
 
 ---
 

@@ -33,34 +33,23 @@ Everything is done on **Windows 10/11**, using **PowerShell (Administrator)** a
 
 | Step | What to do | Expected Result |
 |------|------------|-----------------|
-| 1 | Sign in to <https://github.com> (or create an account). Grab your **username** from the top‑right avatar — you’ll replace `<your-username>` below. | — |
-| 2 | Click **➕ New → New repository**.<br>• **Name**: `config-repo`<br>• **☑ Add a README** ✔<br>Click **Create repository**. | Repo page shows *README.md* |
-| 3 | Click **Add file → Create new file**.<br>• **Filename**: `user-service.properties`<br>• Add:  ```properties
-message=Hello from Config Server!```
-<br>Scroll down → **Commit new file**. | File appears in the repo |
+| **1** | Sign in to <https://github.com> (or create an account). Grab your **username** from the top-right avatar — you’ll replace `<your-username>` below. | — |
+| **2** | Click **➕ New → New repository**<br>• **Name** → `config-repo`<br>• **☑ Add a README** (checked)<br>Click **Create repository** | Repo page shows **README.md** |
+| **3** | Click **Add file → Create new file**<br>• **Filename** → `user-service.properties`<br>• Paste the snippet below, then click **Commit new file**<br><br>```properties<br>message=Hello from Config Server!<br>``` | File appears in the repo |
 
 ---
 
-## Part 1 – Kafka & ZooKeeper
+## Part 1 – Kafka & ZooKeeper
 
-> **Tech Explainer — Kafka & ZooKeeper**  
-> **Kafka** is a distributed event‑streaming platform. **ZooKeeper** keeps track of Kafka brokers. In this lab they move Spring Cloud Bus events so that every microservice hears about config changes.
+> **Tech Explainer — Kafka & ZooKeeper**  
+> **Kafka** is a distributed event-streaming platform. **ZooKeeper** keeps track of Kafka brokers. In this lab they shuttle Spring Cloud Bus events so every microservice hears about config changes.
 
-| Step | Window | Command (PowerShell Admin) | Expected Output |
-|------|--------|---------------------------|-----------------|
-| **A – Prepare** | — | 1. Create folder `C:\kafka`.<br>2. Unzip **kafka_2.12‑3.9.0.zip** to `C:\kafka`. | Folder `C:\kafka\kafka_2.12‑3.9.0` exists |
-| **B – Start ZooKeeper** | 1 | ```powershell
-cd C:\kafka\kafka_2.12-3.9.0
-.\bin\windows\zookeeper-server-start.bat ..\config\zookeeper.properties
-``` | Last line ends with `binding to port 0.0.0.0:2181` |
-| **C – Start Kafka Broker** | 2 | ```powershell
-cd C:\kafka\kafka_2.12-3.9.0
-.\bin\windows\kafka-server-start.bat ..\config\server.properties
-``` | Line shows `[KafkaServer id=0] started` |
-| **D – List Topics** | 3 | ```powershell
-cd C:\kafka\kafka_2.12-3.9.0
-.\bin\windows\kafka-topics.bat --list --bootstrap-server localhost:9092
-``` | Blank list **or** `__consumer_offsets` |
+| Step | Window | Command (PowerShell **Admin**) | Expected Output |
+|------|--------|--------------------------------|-----------------|
+| **A – Prepare** | — | ```powershell<br># 1 – Create the Kafka folder<br>New-Item -ItemType Directory -Force -Path C:\kafka<br><br># 2 – Unzip kafka_2.12-3.9.0.zip into C:\kafka<br>#    (Right-click ➜ Extract All… ➜ choose C:\kafka)<br>``` | Folder **C:\kafka\kafka_2.12-3.9.0** exists |
+| **B – Start ZooKeeper** | 1 | ```powershell<br>cd C:\kafka\kafka_2.12-3.9.0<br>.\bin\windows\zookeeper-server-start.bat ..\config\zookeeper.properties<br>``` | Last line ends with `binding to port 0.0.0.0:2181` |
+| **C – Start Kafka Broker** | 2 | ```powershell<br>cd C:\kafka\kafka_2.12-3.9.0<br>.\bin\windows\kafka-server-start.bat ..\config\server.properties<br>``` | Line shows `[KafkaServer id=0] started` |
+| **D – List Topics** | 3 | ```powershell<br>cd C:\kafka\kafka_2.12-3.9.0<br>.\bin\windows\kafka-topics.bat --list --bootstrap-server localhost:9092<br>``` | Blank list **or** `__consumer_offsets` |
 
 > **Troubleshoot:** If the ZooKeeper window times out, simply close it and repeat **B**, then **C**.
 

@@ -41,17 +41,18 @@ Everything is done on **Windows 10/11**, using **PowerShell (Administrator)** a
 
 ## Part 1 – Kafka & ZooKeeper
 
-> **Tech Explainer — Kafka & ZooKeeper**  
-> **Kafka** is a distributed event-streaming platform. **ZooKeeper** keeps track of Kafka brokers. In this lab they shuttle Spring Cloud Bus events so every microservice hears about config changes.
+> **Tech Explainer — Kafka & ZooKeeper**  
+> **Kafka** is a distributed event-streaming platform. **ZooKeeper** coordinates Kafka brokers.  
+> In this lab they shuttle Spring Cloud Bus events so every microservice learns about config changes.
 
-| Step | Window | Command (PowerShell **Admin**) | Expected Output |
-|------|--------|--------------------------------|-----------------|
-| **A – Prepare** | — | ```powershell<br># 1 – Create the Kafka folder<br>New-Item -ItemType Directory -Force -Path C:\kafka<br><br># 2 – Unzip kafka_2.12-3.9.0.zip into C:\kafka<br>#    (Right-click ➜ Extract All… ➜ choose C:\kafka)<br>``` | Folder **C:\kafka\kafka_2.12-3.9.0** exists |
-| **B – Start ZooKeeper** | 1 | ```powershell<br>cd C:\kafka\kafka_2.12-3.9.0<br>.\bin\windows\zookeeper-server-start.bat ..\config\zookeeper.properties<br>``` | Last line ends with `binding to port 0.0.0.0:2181` |
-| **C – Start Kafka Broker** | 2 | ```powershell<br>cd C:\kafka\kafka_2.12-3.9.0<br>.\bin\windows\kafka-server-start.bat ..\config\server.properties<br>``` | Line shows `[KafkaServer id=0] started` |
-| **D – List Topics** | 3 | ```powershell<br>cd C:\kafka\kafka_2.12-3.9.0<br>.\bin\windows\kafka-topics.bat --list --bootstrap-server localhost:9092<br>``` | Blank list **or** `__consumer_offsets` |
+| Step | Window | Command (run in PowerShell **Admin**) | Expected Output |
+|------|--------|---------------------------------------|-----------------|
+| **A – Prepare** | — | <pre>New-Item -ItemType Directory -Force -Path C:\kafka  # create folder\n# Unzip kafka_2.12-3.9.0.zip to C:\kafka (Explorer → Right-click → Extract All)</pre> | Folder **C:\kafka\kafka_2.12-3.9.0** exists |
+| **B – Start ZooKeeper** | 1 | <pre>cd C:\kafka\kafka_2.12-3.9.0\n.\bin\windows\zookeeper-server-start.bat ..\config\zookeeper.properties</pre> | Last line ends with<br>`binding to port 0.0.0.0:2181` |
+| **C – Start Kafka Broker** | 2 | <pre>cd C:\kafka\kafka_2.12-3.9.0\n.\bin\windows\kafka-server-start.bat ..\config\server.properties</pre> | Line shows<br>`[KafkaServer id=0] started` |
+| **D – List Topics** | 3 | <pre>cd C:\kafka\kafka_2.12-3.9.0\n.\bin\windows\kafka-topics.bat --list --bootstrap-server localhost:9092</pre> | Blank list **or**<br>`__consumer_offsets` |
 
-> **Troubleshoot:** If the ZooKeeper window times out, simply close it and repeat **B**, then **C**.
+> **Troubleshoot:** If the ZooKeeper window times out, close it and repeat **B**, then **C**.
 
 ---
 

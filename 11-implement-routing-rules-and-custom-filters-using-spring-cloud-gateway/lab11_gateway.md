@@ -1,302 +1,253 @@
+# **Lab 11: Implement Routing Rules and Custom Filters Using Spring Cloud Gateway (Spring Boot 3.4.5)**
 
-# **Lab 11: Implement Routing Rules and Custom Filters Using Spring Cloud Gateway (Spring Boot 3.4.5)**
+> **What Is Spring Cloud Gateway?**  
+> **Spring Cloud Gateway** is a lightweight, reactive API‑gateway framework. In this lab it fronts two tiny services, adds headers, logs requests, and exposes actuator metrics.
 
-## **Objective**
-Learn how to configure **Spring Cloud Gateway** (on **Spring Boot 3.4.5**) to route requests to various micro‑services. Implement custom filters to intercept requests/responses, utilize route predicates for dynamic routing, and monitor the gateway with actuator endpoints.
+## Installing Prerequisites
 
----
+| Tool | One‑line install (Windows → winget · macOS → brew · Ubuntu → apt) | Purpose in this lab |
+|------|-------------------------------------------------------------------|---------------------|
+| **Java 17 JDK** | `winget install --id=EclipseAdoptium.Temurin.17.JDK` | Runs all Spring Boot apps |
+| **Maven 3.9+** | `winget install Apache.Maven` | Builds & runs projects (use **mvnw** if generated) |
+| **Git** | `winget install Git.Git` | Optional version control |
+| **IDE** | IntelliJ IDEA Community or VS Code (Java Extension Pack) | Edit and run code |
+| **curl / Postman** | `winget install curl` | Test HTTP endpoints |
 
-## **Prerequisite Setup**
-
-| Tool | Install Command (Windows PowerShell) | Verify |
-|------|--------------------------------------|--------|
-| **Java 17+ JDK** | `winget install --id EclipseAdoptium.Temurin.17.JDK` | `java -version` → `17.*` |
-| **Maven 3.9+** | `winget install --id Apache.Maven` | `mvn -v` |
-| **Git** | `winget install --id Git.Git` | `git --version` |
-| **Docker Desktop** (optional, for containerised Kafka later) | <https://www.docker.com/products/docker-desktop/> | `docker --version` |
-
-> **Tech Explainer — Why we need these tools**  
-> *Java 17* runs all Spring projects. *Maven* builds/executes them. *Git* stores code in the cloud. *Docker* lets us run infrastructure components such as Kafka in containers.
+> **Troubleshooting – `JAVA_HOME` not found?**  
+> Re‑open the terminal or `echo %JAVA_HOME%` / `echo $JAVA_HOME` to confirm. Add it if missing.
 
 ---
 
-### **GitHub Setup (one‑time)**
-
-1. **Create an account.** Go to <https://github.com/> → **Sign up** → follow prompts.  
-2. **Create a repository.** After login: **➕ New → New repository** →  
-   * **Name**: `spring-gateway-labs`  
-   * **☑ Add a README** → **Create repository**  
-3. **Clone the repo locally.**
-   ```powershell
-   git clone https://github.com/<your‑username>/spring-gateway-labs.git
-   # Expected:
-   # Cloning into 'spring-gateway-labs'...
-   # remote: Enumerating objects: ...
-   ```
-4. **Push code during the lab.** Inside each project folder:
-   ```powershell
-   git add .
-   git commit -m "Add ApiGateway project"
-   git push
-   # Expected last line:
-   # main -> main
-   ```
+## Objective
+Configure **Spring Cloud Gateway** to route requests, add custom filters, and monitor everything with Actuator endpoints.
 
 ---
 
-## **Lab Steps**
+## Lab Steps
 
-### **Part 1: Setting Up the API Gateway**
+### Part 1: Setting Up the **ApiGateway**
 
-1. **Generate a new Spring Boot project for `ApiGateway`.**  
-   - Go to <https://start.spring.io/>  
-   - Use: Group `com.microservices`, Artifact `api-gateway`, Boot `3.4.5`.  
-   - Add **Dependencies**: *Spring Cloud Gateway*, *Spring Boot Actuator*.  
-   - Click **Generate** → unzip into `spring-gateway-labs/api-gateway`.
+#### 1. Create Project
 
-   > **Tech Explainer — Spring Cloud Gateway**  
-   > A lightweight, reactive API gateway that routes requests, applies filters, and off‑loads cross‑cutting concerns (security, logging). It replaces older Netflix Zuul.
+| Setting | Value |
+|---------|-------|
+| **Folder** | `C:\Projects\Lab11\api-gateway` |
+| **Spring Initializr** | <https://start.spring.io> |
+| **Group / Artifact / Name** | `com.microservices` / `api-gateway` / `api-gateway` |
+| **Dependencies** | **Spring Cloud Gateway**, **Spring Boot Actuator** |
 
-2. **Import the project into your IDE** (IntelliJ IDEA / VS Code). Open the `api-gateway` folder.
+*Download* the generated ZIP and unzip it into the folder shown above.
 
-3. **Update Maven dependencies**  
-   *File*: `api-gateway/pom.xml`  
-   Replace the entire `<dependencies>` block with:
+#### 2. Import into IDE  
+*IntelliJ*: **File → Open…** select the folder.  
 
-   ```xml
-   <dependencies>
-       <!-- ✅ Spring Cloud Gateway (Reactive) -->
-       <dependency>
-           <groupId>org.springframework.cloud</groupId>
-           <artifactId>spring-cloud-starter-gateway</artifactId>
-       </dependency>
+> **No manual POM edits needed!** Both dependencies come pre‑configured, and `spring-boot-starter-webflux` plus `spring-boot-starter-test` are added transitively.
 
-       <!-- ✅ WebFlux runtime -->
-       <dependency>
-           <groupId>org.springframework.boot</groupId>
-           <artifactId>spring-boot-starter-webflux</artifactId>
-       </dependency>
+#### 3. Create the main application class  
+**Path:** `api-gateway/src/main/java/com/microservices/apigateway/ApiGatewayApplication.java`  
+```java
+package com.microservices.apigateway;
 
-       <!-- Actuator endpoints -->
-       <dependency>
-           <groupId>org.springframework.boot</groupId>
-           <artifactId>spring-boot-starter-actuator</artifactId>
-       </dependency>
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-       <!-- Tests -->
-       <dependency>
-           <groupId>org.springframework.boot</groupId>
-           <artifactId>spring-boot-starter-test</artifactId>
-           <scope>test</scope>
-       </dependency>
-   </dependencies>
-   ```
-
-4. **Create the main application class.**  
-   *File*: `api-gateway/src/main/java/com/microservices/apigateway/ApiGatewayApplication.java`
-
-   ```java
-   package com.microservices.apigateway;
-
-   import org.springframework.boot.SpringApplication;
-   import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-   @SpringBootApplication
-   public class ApiGatewayApplication {
-       public static void main(String[] args) {
-           SpringApplication.run(ApiGatewayApplication.class, args);
-       }
-   }
-   ```
-
-5. **Add route configuration.**  
-   *File*: `api-gateway/src/main/resources/application.properties`
-
-   ```properties
-   # ----------------------------------------------------------------------
-   # Basic service settings
-   # ----------------------------------------------------------------------
-   spring.application.name=api-gateway
-   server.port=8080
-
-   # ----------------------------------------------------------------------
-   # Route 1 – user-service
-   # ----------------------------------------------------------------------
-   spring.cloud.gateway.routes[0].id=user-service
-   spring.cloud.gateway.routes[0].uri=http://localhost:8081
-   spring.cloud.gateway.routes[0].predicates[0]=Path=/users/**
-   spring.cloud.gateway.routes[0].predicates[1]=Query=username
-   spring.cloud.gateway.routes[0].filters[0]=AddRequestHeader=X-User-Header, UserServiceHeader
-
-   # ----------------------------------------------------------------------
-   # Route 2 – product-service
-   # ----------------------------------------------------------------------
-   spring.cloud.gateway.routes[1].id=product-service
-   spring.cloud.gateway.routes[1].uri=http://localhost:8082
-   spring.cloud.gateway.routes[1].predicates[0]=Path=/products/**
-   spring.cloud.gateway.routes[1].filters[0]=AddResponseHeader=X-Product-Header, ProductServiceHeader
-
-   # ----------------------------------------------------------------------
-   # Actuator / management endpoints
-   # ----------------------------------------------------------------------
-   management.endpoints.web.exposure.include=*
-   management.endpoint.gateway.enabled=true
-   management.endpoints.web.base-path=/actuator
-   ```
-
-6. **Run the `ApiGateway` application.**
-   ```powershell
-   cd api-gateway
-   mvn spring-boot:run
-   # Expected (last lines):
-   # Started ApiGatewayApplication in 4.123 s (JVM running for 4.8)
-   # Netty started on port(s): 8080
-   ```
-
----
-
-### **Part 2: Setting Up Micro‑services**
-
-7. **Create `UserService`.**  
-   - Generate another Spring Boot project (`user-service`) with **Spring Web** dependency.  
-   - Unzip into `spring-gateway-labs/user-service`.  
-   - *File*: `user-service/src/main/resources/application.properties`
-     ```properties
-     server.port=8081
-     ```
-   - *File*: `user-service/src/main/java/com/microservices/userservice/UserController.java`
-     ```java
-     package com.microservices.userservice;
-
-     import org.springframework.web.bind.annotation.*;
-
-     @RestController
-     public class UserController {
-         @GetMapping("/users")
-         public String getUsers(@RequestParam String username,
-                                @RequestHeader(value = "X-User-Header", required = false) String userHeader) {
-             System.out.println("Received X-User-Header: " + userHeader);
-             return "Users fetched by: " + username + " | Header: " + userHeader;
-         }
-     }
-     ```
-
-8. **Create `ProductService`.**  
-   - Generate Spring Boot project (`product-service`) with **Spring Web**.  
-   - Unzip into `spring-gateway-labs/product-service`.  
-   - *File*: `product-service/src/main/resources/application.properties`
-     ```properties
-     server.port=8082
-     ```
-   - *File*: `product-service/src/main/java/com/microservices/productservice/ProductController.java`
-     ```java
-     package com.microservices.productservice;
-
-     import org.springframework.web.bind.annotation.*;
-
-     @RestController
-     public class ProductController {
-         @GetMapping("/products")
-         public String getProducts() {
-             return "List of products from ProductService";
-         }
-     }
-     ```
-
-9. **Run both services in separate terminals.**
-   ```powershell
-   # Terminal 1
-   cd user-service
-   mvn spring-boot:run
-   # Expected last line: Started UserServiceApplication ... Tomcat started on port(s): 8081
-
-   # Terminal 2
-   cd product-service
-   mvn spring-boot:run
-   # Expected last line: Started ProductServiceApplication ... Tomcat started on port(s): 8082
-   ```
-
----
-
-### **Part 3: Creating and Testing Filters**
-
-10. **Create a global logging filter.**  
-    *File*: `api-gateway/src/main/java/com/microservices/apigateway/filter/LoggingFilter.java`
-    ```java
-    package com.microservices.apigateway.filter;
-
-    import org.slf4j.*;
-    import org.springframework.core.annotation.Order;
-    import org.springframework.stereotype.Component;
-    import org.springframework.cloud.gateway.filter.*;
-    import org.springframework.web.server.ServerWebExchange;
-    import reactor.core.publisher.Mono;
-
-    @Component
-    @Order(1)
-    public class LoggingFilter implements GlobalFilter {
-        private static final Logger logger = LoggerFactory.getLogger(LoggingFilter.class);
-
-        public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-            logger.info("Incoming request: " + exchange.getRequest().getURI());
-            return chain.filter(exchange).then(Mono.fromRunnable(() ->
-                logger.info("Outgoing response: " + exchange.getResponse().getStatusCode())));
-        }
+@SpringBootApplication
+public class ApiGatewayApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(ApiGatewayApplication.class, args);
     }
-    ```
+}
+```
 
-11. **Restart the gateway** (stop & rerun Step 6) and watch the logs.
+#### 4. Configure default routes  
+**Path:** `api-gateway/src/main/resources/application.properties`  
+```properties
+spring.application.name=api-gateway
+server.port=8080
 
-12. **Test routing through the gateway.**
-    ```powershell
-    curl "http://localhost:8080/users?username=admin"
-    # Expected:
-    # Users fetched by: admin | Header: UserServiceHeader
+# Route 1 – user-service
+spring.cloud.gateway.routes[0].id=user-service
+spring.cloud.gateway.routes[0].uri=http://localhost:8081
+spring.cloud.gateway.routes[0].predicates[0]=Path=/users/**
+spring.cloud.gateway.routes[0].predicates[1]=Query=username
+spring.cloud.gateway.routes[0].filters[0]=AddRequestHeader=X-User-Header, UserServiceHeader
 
-    curl "http://localhost:8080/products"
-    # Expected:
-    # List of products from ProductService
-    # (inspect response headers for X-Product-Header: ProductServiceHeader)
-    ```
+# Route 2 – product-service (time‑based)
+spring.cloud.gateway.routes[1].id=product-service
+spring.cloud.gateway.routes[1].uri=http://localhost:8082
+spring.cloud.gateway.routes[1].predicates[0]=Path=/products/**
+spring.cloud.gateway.routes[1].predicates[1]=After=2024-01-01T00:00:00Z
+spring.cloud.gateway.routes[1].filters[0]=AddResponseHeader=X-Product-Header, ProductServiceHeader
 
-13. **Verify gateway logs** display “Incoming request” and “Outgoing response”.
+# Actuator
+management.endpoints.web.exposure.include=routes,filters
+```
+
+#### 5. Run the gateway  
+*IDE*: right‑click `ApiGatewayApplication` → **Run**.  
+*CLI*:
+```bash
+mvn spring-boot:run
+```
+Expected:
+```text
+...Started ApiGatewayApplication...
+```
+
+#### 6. Smoke‑test routing (run PowerShell as Administrator)  
+```bash
+# Call the user route with required query parameter
+curl "http://localhost:8080/users?username=admin"
+# Call the product route
+curl "http://localhost:8080/products"
+```
+Expected:
+```text
+Users fetched by: admin | Header: UserServiceHeader
+List of products from ProductService
+```
 
 ---
 
-### **Part 4: Advanced Routing with Predicates**
+### Part 2: Setting Up **UserService**
 
-14. **Test query‑parameter enforcement.**
-    ```powershell
-    curl "http://localhost:8080/users"
-    # Expected: 404 Not Found (because ?username is missing)
-    ```
+#### 7. Create Project
 
-15. **(Optional extension to explore on your own)** Add more predicates or custom filters once the core lab works.
+| Setting | Value |
+|---------|-------|
+| **Folder** | `C:\Projects\Lab11\user-service` |
+| **Spring Initializr** | <https://start.spring.io> |
+| **Group / Artifact / Name** | `com.microservices` / `user-service` / `user-service` |
+| **Dependencies** | **Spring Web**, **Spring Boot Actuator** |
+
+#### 8. Set port & controller  
+`src/main/resources/application.properties`
+```properties
+server.port=8081
+```
+`src/main/java/.../UserController.java`
+```java
+@RestController
+public class UserController {
+    @GetMapping("/users")
+    public String getUsers(@RequestParam String username,
+                           @RequestHeader(value="X-User-Header",required=false) String userHeader) {
+        System.out.println("Received X-User-Header: " + userHeader);
+        return "Users fetched by: " + username + " | Header: " + userHeader;
+    }
+}
+```
+
+#### 9. Run UserService  
+```bash
+mvn spring-boot:run
+```
 
 ---
 
-### **Part 5: Monitoring the Gateway with Actuator**
+### Part 3: Setting Up **ProductService**
 
-16. **Access actuator endpoints.**  
-    ```powershell
-    curl http://localhost:8080/actuator/gateway/routes
-    # Expected: JSON array with `user-service`, `product-service`
+#### 10. Create Project
 
-    curl http://localhost:8080/actuator/gateway/globalfilters
-    # Expected: includes LoggingFilter
+| Setting | Value |
+|---------|-------|
+| **Folder** | `C:\Projects\Lab11\product-service` |
+| **Spring Initializr** | <https://start.spring.io> |
+| **Group / Artifact / Name** | `com.microservices` / `product-service` / `product-service` |
+| **Dependencies** | **Spring Web**, **Spring Boot Actuator** |
 
-    curl http://localhost:8080/actuator/gateway/routefilters
-    # Expected: shows AddRequestHeader and AddResponseHeader filters
-    ```
+#### 11. Set port & controller  
+`src/main/resources/application.properties`
+```properties
+server.port=8082
+```
+`src/main/java/.../ProductController.java`
+```java
+@RestController
+public class ProductController {
+    @GetMapping("/products")
+    public String getProducts() {
+        return "List of products from ProductService";
+    }
+}
+```
+
+#### 12. Run ProductService  
+```bash
+mvn spring-boot:run
+```
 
 ---
 
-## ✅ Conclusion
+### Part 4: Global & Custom Filters (Gateway)
+
+13. **Global logging filter**  
+`api-gateway/src/main/java/.../LoggingFilter.java`
+```java
+@Component
+@Order(1)
+public class LoggingFilter implements GlobalFilter {
+    private static final Logger log = LoggerFactory.getLogger(LoggingFilter.class);
+    public Mono<Void> filter(ServerWebExchange ex, GatewayFilterChain chain) {
+        log.info("Incoming: {}", ex.getRequest().getURI());
+        return chain.filter(ex).then(Mono.fromRunnable(() ->
+            log.info("Outgoing: {}", ex.getResponse().getStatusCode())));
+    }
+}
+```
+Restart the gateway, then run:
+```bash
+curl "http://localhost:8080/users?username=test"
+```
+You should see two log lines (`Incoming:` and `Outgoing:`) in the gateway console.
+
+14. **Custom response filter**  
+`api-gateway/src/main/java/.../CustomResponseFilter.java`
+```java
+@Component
+public class CustomResponseFilter
+        extends AbstractGatewayFilterFactory<Object> {
+    @Override
+    public GatewayFilter apply(Object cfg) {
+        return (ex, chain) -> chain.filter(ex)
+            .then(Mono.fromRunnable(() ->
+                ex.getResponse().getHeaders()
+                  .add("X-Response-Header","ModifiedResponse")));
+    }
+}
+```
+Refer to it in the `product-service` route **or** keep `AddResponseHeader`.
+
+15. Call `/products` and check header via:
+```bash
+curl -I "http://localhost:8080/products"
+```
+
+---
+
+### Part 5: Predicate Rules Recap
+
+* `/users` requires `?username=` query param.  
+* `/products` route activates only **after** 2024‑01‑01T00:00:00Z.
+
+---
+
+### Part 6: Monitoring with Actuator (run PowerShell as Administrator)
+
+```bash
+curl "http://localhost:8080/actuator/routes"
+curl "http://localhost:8080/actuator/filters"
+```
+You should see JSON for each route and filter.
+
+---
+
+## Conclusion 🎉
 You now have:
 
-- A fully working **API Gateway**  
-- Global filters and header manipulation  
-- Predicate‑based routing  
-- Actuator‑powered visibility  
+* A reactive **API Gateway** (Spring Boot 3.4.5)  
+* Query‑ and time‑based predicates  
+* Global & custom filters  
+* Actuator visibility  
 
-Push your three projects to GitHub (`spring-gateway-labs`) to showcase your work!
+Next step: connect Eureka for dynamic service registration and see routes appear automatically!

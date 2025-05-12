@@ -9,195 +9,171 @@ Learn how to install and configure **Jenkins** to automate the build, testing, a
 
 ### **Part 1: Installing Jenkins**
 
-1. **Install Java (Jenkins prerequisite).**  
-   - Confirm Java by running:  
-     ```bash
-     java -version
-     ```  
-   - If not found, install **JDK 17** (e.g., from [Adoptium](https://adoptium.net/)).  
-   - Verify installation:  
-     ```bash
+1. **Install Java (Jenkins prerequisite).**
+   - Confirm Java by running:
+     ```cmd
      java -version
      ```
+     ✅ Expected output:
+     ```
+     openjdk version "17.x.x"
+     ```
+   - If not found, install **JDK 17** from [Adoptium](https://adoptium.net/).
 
-2. **Download Jenkins.**  
-   - Visit [Jenkins Downloads](https://www.jenkins.io/download/) and get the installer for your OS (Windows, macOS, or Linux).
+2. **Download Jenkins.**
+   - Visit [Jenkins Downloads](https://www.jenkins.io/download/) and get the installer for **Windows**.
 
-3. **Install Jenkins.**  
-   - Run the installer and follow the wizard:  
-     - **Linux**: Use your package manager or `.deb`/`.rpm` packages.  
-     - **Windows**: Choose “**Run Jenkins as a Service**” option.  
-     - **macOS**: Use the `.pkg` installer.
+3. **Install Jenkins.**
+   - Run the installer and choose “**Run Jenkins as a Service**”.
 
-4. **Start Jenkins.**  
-   - Jenkins usually starts on **port 8080**.  
-   - **Linux/macOS**:  
-     ```bash
-     sudo systemctl start jenkins
-     ```  
-   - **Windows**: Start it from **Services**.
+4. **Start Jenkins.**
+   - Open **Services** from the Start Menu and start the Jenkins service.
 
-5. **Verify Jenkins is running.**  
-   - Go to `http://localhost:8080`.
+5. **Verify Jenkins is running.**
+   - Open browser and go to:
+     ```
+     http://localhost:8080
+     ```
 
-6. **Unlock Jenkins.**  
-   - Follow the prompt to retrieve the initial admin password:  
-     - **Linux/macOS**:  
-       ```bash
-       sudo cat /var/lib/jenkins/secrets/initialAdminPassword
-       ```  
-     - **Windows**:  
-       ```cmd
-       type C:\Jenkins\secrets\initialAdminPassword
-       ```  
+6. **Unlock Jenkins.**
+   - Retrieve the initial admin password:
+     ```cmd
+     type C:\Jenkins\secrets\initialAdminPassword
+     ```
    - Copy/paste it into Jenkins.
 
-7. **Install suggested plugins.**  
+7. **Install suggested plugins.**
    - Jenkins will prompt you to install **Suggested plugins**. Do so.
 
-8. **Create an admin user.**  
+8. **Create an admin user.**
    - Finalize the setup by creating an admin account.
 
-9. **Install Maven manually and extend `PATH`.**  
-   - Download the binary ZIP from <https://maven.apache.org/download.cgi>.  
-   - Unzip to e.g. `C:\Tools\apache-maven-3.9.9`.  
-   - Add `C:\Tools\apache-maven-3.9.9\bin` to `PATH`:  
-     - **Via Jenkins node properties → Environment variables**  
-       - **Name** `PATH+MAVEN` **Value** `C:\Tools\apache-maven-3.9.9\bin`  
-     - **—or globally** in *Windows System variables* (same dialog as above).  
-   - **Restart the Jenkins Agent Windows service** (or reboot) so the new `PATH` is picked up.
+> **What is Jenkins?**  
+> Jenkins is an open-source automation server. In this lab, you’ll use it to automatically test and build your Spring Boot microservices when you push code.
 
 ---
 
 ### **Part 2: Preparing the Microservices**
 
-10. **Ensure `UserService` and `OrderService` are in Git repositories.**  
-    - Each microservice is a **Spring Boot 3.4.5** project pushed to a hosting platform like **GitHub**.
+> ⚙️ **Creating Microservices from start.spring.io**
+>
+> Create two projects from [https://start.spring.io](https://start.spring.io) with the following settings:
+>
+> | Service        | Spring Boot | Group ID            | Artifact ID      | Dependencies                     |
+> |----------------|-------------|----------------------|------------------|----------------------------------|
+> | UserService    | 3.4.5       | `com.microservices`  | `user-service`   | Spring Web, Spring Boot DevTools |
+> | OrderService   | 3.4.5       | `com.microservices`  | `order-service`  | Spring Web, Spring Boot DevTools |
 
-11. **Configure `pom.xml` for Jenkins.**  
-    - In each microservice’s `pom.xml`, ensure the **Surefire plugin** is present for running tests:  
-      ```xml
-      <build>
-          <plugins>
-              <plugin>
-                  <groupId>org.apache.maven.plugins</groupId>
-                  <artifactId>maven-surefire-plugin</artifactId>
-                  <version>3.0.0</version>
-              </plugin>
-          </plugins>
-      </build>
-      ```  
-    - This ensures Jenkins can run `mvn test` or `mvn clean install`.
+9. **Push services to GitHub.**
+   - Make sure `UserService` and `OrderService` are hosted in GitHub repositories.
+
+10. **Verify `pom.xml` contains Surefire plugin.**
+📄 `UserService/pom.xml` and `OrderService/pom.xml`:
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>3.0.0</version>
+        </plugin>
+    </plugins>
+</build>
+```
+💡 Note: Do not manually add versions for Spring Boot dependencies. Use Spring Initializr's managed versions.
 
 ---
 
 ### **Part 3: Configuring Jenkins for CI**
 
-12. **Create a Jenkins job for `UserService`.**  
-    - From the Jenkins dashboard, click **New Item**.  
+11. **Create a Jenkins job for `UserService`.**
+    - From the Jenkins dashboard, click **New Item**.
     - Name it `UserService-CI`, choose **Freestyle project**, and click **OK**.
 
-13. **Set up the Git repository in Jenkins.**  
-    - Under **Source Code Management**, select **Git** and enter the repository URL for `UserService`.
+12. **Set up the Git repository in Jenkins.**
+    - Under **Source Code Management**, select **Git**.
+    - Under **Branch Specifier**, Enter exactly ***/main**
+    - Enter the GitHub repository URL for `UserService`.
 
-14. **Add a Maven build step.**  
-    - In the **Build** section, add **Invoke top-level Maven targets**  
+13. **Add a Maven build step.**
+    - In the **Build** section, add **Invoke top-level Maven targets**.
+    - Goals:
       ```
       clean install
       ```
 
-15. **Save and run the job.**  
-    - Click **Build Now** and confirm the build passes.
+14. **Save and run the job.**
+    - Click **Build Now**.
+    - ✅ Expected output:
+      ```
+      BUILD SUCCESS
+      ```
 
-16. **Create a job for `OrderService`.**  
-    - Repeat the same steps: name it `OrderService-CI`, configure the Git repo, and add `clean install`.
+15. **Repeat for `OrderService`.**
+    - Name it `OrderService-CI`.
 
 ---
 
 ### **Part 4: Creating a Jenkins Pipeline**
 
-17. **Install Pipeline plugins (Pipeline: API, and Pipeline: Stage View).**  
-    - Navigate to **Manage Jenkins** → **Manage Plugins**, search for the plugins above, and install them.
+16. **Install the Pipeline plugin if not installed.**
+    - Go to **Manage Jenkins** → **Manage Plugins**.
+    - Search for and install **Pipeline**.
 
-18. **Create a new pipeline job.**  
-    - In the dashboard, click **New Item**, select **Pipeline**, name it `Microservices-CI-Pipeline`, and click **OK**.
+17. **Create a pipeline job.**
+    - Dashboard → **New Item** → Name: `Microservices-CI-Pipeline` → Select **Pipeline** → Click **OK**.
 
-19. **Write the pipeline script.**  
-    - Under **Pipeline** → **Pipeline script**:  
-      ```groovy
-      pipeline {
-          agent any
+18. **Add the pipeline script.**
+    - Under **Pipeline** → **Pipeline script**:
+```groovy
+pipeline {
+    agent any
+    stages {
+        stage('Build UserService') {
+            steps {
+                script {
+                    git branch:'main', url: '<UserService Git URL>'
+                    dir('user-service') {
+                        bat 'mvn clean install'
+                    }
+                }
+            }
+        }
+        stage('Build OrderService') {
+            steps {
+                script {
+                    git branch:'main', url: '<OrderService Git URL>'
+                    dir('order-service') {
+                        bat 'mvn clean install'
+                    }
+                }
+            }
+        }
+    }
+}
 
-          stages {
-              stage('Check cmd') {
-                  steps {
-                      bat 'echo CMD is working'
-                  }
-              }
+```
 
-              stage('Build UserService') {
-                  steps {
-                      checkout([$class: 'GitSCM',
-                                branches: [[name: '*/main']],
-                                userRemoteConfigs: [[url: 'https://github.com/RushiSharma1999/user-service.git']]
-                      ])
-                      bat 'mvn -B clean install'
-                  }
-              }
-
-              stage('Build OrderService') {
-                  steps {
-                      checkout([$class: 'GitSCM',
-                                branches: [[name: '*/main']],
-                                userRemoteConfigs: [[url: 'https://github.com/RushiSharma1999/order-service.git']]
-                      ])
-                      bat 'mvn -B clean install'
-                  }
-              }
-          }
-      }
+19. **Run the pipeline.**
+    - Click **Build Now**.
+    - ✅ Expected output:
       ```
-
-20. **Save and run the pipeline.**  
-    - Click **Build Now** and confirm both microservices build successfully in one pipeline run.
+      BUILD SUCCESS
+      ```
 
 ---
 
 ### **Part 5: Deployment (Optional)**
 
-21. **Add a deployment stage.**  
-    ```groovy
-    stage('Deploy to Server') {
-        steps {
-            script {
-                sh 'scp user-service/target/*.jar user@server:/path/to/deploy/'
-                sh 'scp order-service/target/*.jar user@server:/path/to/deploy/'
-            }
-        }
-    }
-    ```  
-    - Replace with your actual deployment logic (Docker push, Kubernetes apply, etc.).
-
-22. **Configure automated triggers.**  
-    - In GitHub (or another Git server), set up **webhooks** to trigger Jenkins on each push.
-
----
-
-## **Optional Exercises**
-
-1. **Integrate automated tests.** Add stages for integration or Docker-based tests.  
-2. **Set up a multi-branch pipeline.** Use the **Multibranch Pipeline Plugin** to create jobs per branch automatically.  
-3. **Add Docker integration.** Build Docker images in your pipeline and push them to a registry.  
-4. **Monitor Jenkins builds.** Try plugins like **Build Monitor View** or **Blue Ocean** for rich visualization.
+20. **Configure webhook triggers.**
+    - In your GitHub repository → **Settings** → **Webhooks** → Add URL to Jenkins webhook endpoint.
 
 ---
 
 ## **Conclusion**
-By completing this lab, you have:
+You have:
+- Installed Jenkins on **Windows**
+- Created Freestyle and Pipeline jobs
+- Automated build and optional deployment of two Spring Boot microservices
 
-- **Installed and configured Jenkins** (running on port 8080).  
-- **Set up Freestyle jobs** for each microservice (`UserService`, `OrderService`).  
-- **Created a pipeline** that clones, builds, and optionally deploys both microservices in a single run.  
-- **Learned** how Jenkins can automate your entire CI flow, ensuring code changes are consistently tested and deployed.
-
-Enjoy building more advanced CI/CD pipelines!
+🎉 Your first CI pipeline is now live!

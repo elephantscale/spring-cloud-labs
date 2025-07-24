@@ -1,4 +1,4 @@
-# **Lab 5: Use Zookeeper for Distributed Configuration and Synchronization (Spring Boot 3.4.1)**
+# **Lab 5: Use Zookeeper for Distributed Configuration and Synchronization (Spring Boot 3.4.4)**
 
 ## **Objective**
 Learn how to set up **Apache Zookeeper** to register microservices (Spring Boot **3.4.1**) for discovery and explore its **KV store** for dynamic configuration. Zookeeper offers distributed synchronization capabilities suitable for microservices needing coordination or shared config.

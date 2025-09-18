@@ -5,18 +5,6 @@ Learn how to install and configure **Jenkins** to automate the build, testing, a
 
 ---
 
-## **GitHub CLI Setup — do this once**
-
-> We’ll install the GitHub CLI and authenticate so you never have to copy a token manually.
-
-| Step | What to do (PowerShell **Administrator**) | Expected Result |
-|------|-------------------------------------------|-----------------|
-| 1 | **Install GitHub CLI**<br>`winget install --id GitHub.cli` | *Successfully installed GitHub CLI* |
-| 2 | **Verify installation**<br>`gh --version` | Prints e.g. `gh version 2.51.0` |
-| 3 | **Authenticate**<br>`gh auth login` → choose **GitHub.com** → **HTTPS** → browser opens, sign in, click **Authorize** | Terminal shows `✓ Logged in as <your‑username>` |
-
----
-
 ## **Lab Steps**
 
 ### **Part 1: Installing Jenkins**
@@ -110,6 +98,18 @@ Learn how to install and configure **Jenkins** to automate the build, testing, a
    ```
 
 > 💡 Tip: In IntelliJ, press **Alt + F12** (or click **Terminal**) inside each project to run build/test commands once dependencies finish indexing.
+
+---
+
+## **GitHub CLI Setup — do this once**
+
+> We’ll install the GitHub CLI and authenticate so you never have to copy a token manually.
+
+| Step | What to do (PowerShell **Administrator**) | Expected Result |
+|------|-------------------------------------------|-----------------|
+| 1 | **Install GitHub CLI**<br>`winget install --id GitHub.cli` | *Successfully installed GitHub CLI* |
+| 2 | **Verify installation**<br>`gh --version` | Prints e.g. `gh version 2.51.0` |
+| 3 | **Authenticate**<br>`gh auth login` → choose **GitHub.com** → **HTTPS** → browser opens, sign in, click **Authorize** | Terminal shows `✓ Logged in as <your‑username>` |
 
 ---
 

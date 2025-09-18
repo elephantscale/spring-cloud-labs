@@ -53,37 +53,51 @@ Learn how to install and configure **Jenkins** to automate the build, testing, a
 
 ---
 
-### **Part 2: Prepare the Microservices (`order-service` & `user-service`)**
+## Part 2: Setting Up the Microservices (`order-service` & `user-service`)
 
-**Extract starter files.**
-- 📦 Place **studentCloud.zip** in `C:\` and **Extract All**.  
-- 📁 Create folder `C:\studentCloudLabs`.  
-- 📋 Copy `lab14` from `C:\studentCloud\starters` → paste to `C:\studentCloudLabs`.
+**Create projects.**  
+   Make sure you have extracted the starter files for **Lab 14**.
+   - 📂 Place **studentCloud.zip** in `C:\` and **Extract All`.  
+   - 📂 Create folder `C:\studentCloudLabs`.  
+   - 📋 Copy **lab14** from `C:\studentCloud\starters` → paste into `C:\studentCloudLabs`.
 
-**Unzip the services.**
-- Inside `C:\studentCloudLabs\lab14`, unzip:
-  - `order-service.zip` → folder `order-service`
-  - `user-service.zip` → folder `user-service`
+   Once Lab 14 is copied, unzip the service folders:
+   - 🗂️ Inside `lab14`, unzip service files (e.g., `order-service.zip` → `order-service`, `user-service.zip` → `user-service`).  
+   - ✅ Verify structure, e.g.:  
+     ```
+     C:\studentCloudLabs
+       └─ lab14
+           ├─ order-service
+           └─ user-service
+     ```
 
-Result:
-```
-C:\studentCloudLabs
-└─ lab14
-   ├─ order-service
-   └─ user-service
-```
+**Open in IDE and update the `pom.xml` for the Producer (`order-service`).**  
+   - Open **IntelliJ IDEA** (or VS Code) → **File → Open…** → select `C:\studentCloudLabs\lab14\order-service`.  
+   - Wait for Maven/Gradle import to finish.  
+   - Add the following dependencies to `order-service/pom.xml`:
+   ```xml
+      <dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+   ```
 
-**Open & update `pom.xml` (optional devtools)**
-- In **IntelliJ IDEA** or VS Code, open **each project** and add to `pom.xml`:
-```xml
-<dependency>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-devtools</artifactId>
-  <scope>runtime</scope>
-  <optional>true</optional>
-</dependency>
-```
-> 💡 Tip: In IntelliJ, press **Alt + F12** to open the Terminal in the project folder.
+**Open in IDE and update the `pom.xml` for the Producer (`user-service`).**  
+   - Open **IntelliJ IDEA** (or VS Code) → **File → Open…** → select `C:\studentCloudLabs\lab14\user-service`.  
+   - Wait for Maven/Gradle import to finish.  
+   - Add the following dependencies to `user-service/pom.xml`:
+   ```xml
+      <dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+   ```
+
+> 💡 Tip: In IntelliJ, press **Alt + F12** (or click **Terminal**) inside each project to run build/test commands once dependencies finish indexing.
 
 ---
 
@@ -143,7 +157,7 @@ git remote set-url origin https://github.com/<your-username>/<repo-name>.git
 ---
 
 ## **(Optional) Option B — GitHub CLI (gh)**
-Use this if you prefer to create repos from the terminal. **Optional**.
+Use this if you have not autenticared with GitHub before and would prefer to use Powershell instead of the VS Code Terminal. **Optional**.
 
 **Install & login (PowerShell as Administrator)**
 ```powershell

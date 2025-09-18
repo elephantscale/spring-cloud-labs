@@ -7,10 +7,10 @@ Learn how to install and configure **Jenkins** to automate the build, testing, a
 
 ## **Lab Steps**
 
-### **Part 1: Installing Jenkins**
+### **Part 1: Installing Jenkins (Windows)**
 
-1. **Install Java (Jenkins prerequisite).**
-   - Confirm Java by running:
+1) **Install Java (Jenkins prerequisite).**  
+   - Check Java:
      ```cmd
      java -version
      ```
@@ -18,177 +18,203 @@ Learn how to install and configure **Jenkins** to automate the build, testing, a
      ```
      openjdk version "17.x.x"
      ```
-   - If not found, install **JDK 17** from [Adoptium](https://adoptium.net/).
+   - If not found, install **JDK 17** from https://adoptium.net
 
-2. **Download Jenkins.**
-   - Visit [Jenkins Downloads](https://www.jenkins.io/download/) and get the installer for **Windows**.
+2) **Download Jenkins.**  
+   - Get the Windows installer from https://www.jenkins.io/download/
 
-3. **Install Jenkins.**
-   - Run the installer and choose “**Run Jenkins as a Service**”.
+3) **Install Jenkins.**  
+   - Run the installer and choose **Run Jenkins as a Service**.
 
-4. **Start Jenkins.**
-   - Open **Services** from the Start Menu and start the Jenkins service.
+4) **Start Jenkins.**  
+   - Open **Services** (Start Menu) and start the **Jenkins** service.
 
-5. **Verify Jenkins is running.**
-   - Open browser and go to:
+5) **Verify Jenkins is running.**  
+   - Open a browser and go to:
      ```
      http://localhost:8080
      ```
 
-6. **Unlock Jenkins.**
+6) **Unlock Jenkins.**  
    - Retrieve the initial admin password:
      ```cmd
      type C:\Jenkins\secrets\initialAdminPassword
      ```
-   - Copy/paste it into Jenkins.
+   - Paste it into the Jenkins setup screen.
 
-7. **Install suggested plugins.**
-   - Jenkins will prompt you to install **Suggested plugins**. Do so.
+7) **Install suggested plugins.**  
+   - Choose **Install suggested plugins**.
 
-8. **Create an admin user.**
-   - Finalize the setup by creating an admin account.
+8) **Create an admin user.**  
+   - Complete the setup with an admin account.
 
 > **What is Jenkins?**  
-> Jenkins is an open-source automation server. In this lab, you’ll use it to automatically test and build your Spring Boot microservices when you push code.
+> Jenkins is an open‑source automation server. In this lab, you’ll use it to automatically build and test your Spring Boot microservices when you push code.
 
 ---
 
-## Part 2: Setting Up the Microservices (`order-service` & `user-service`)
+### **Part 2: Prepare the Microservices (`order-service` & `user-service`)**
 
-**Create projects.**  
-   Make sure you have extracted the starter files for **Lab 14**.
-   - 📂 Place **studentCloud.zip** in `C:\` and **Extract All`.  
-   - 📂 Create folder `C:\studentCloudLabs`.  
-   - 📋 Copy **lab14** from `C:\studentCloud\starters` → paste into `C:\studentCloudLabs`.
+**Extract starter files.**
+- 📦 Place **studentCloud.zip** in `C:\` and **Extract All**.  
+- 📁 Create folder `C:\studentCloudLabs`.  
+- 📋 Copy `lab14` from `C:\studentCloud\starters` → paste to `C:\studentCloudLabs`.
 
-   Once Lab 14 is copied, unzip the service folders:
-   - 🗂️ Inside `lab14`, unzip service files (e.g., `order-service.zip` → `order-service`, `user-service.zip` → `user-service`).  
-   - ✅ Verify structure, e.g.:  
-     ```
-     C:\studentCloudLabs
-       └─ lab14
-           ├─ order-service
-           └─ user-service
-     ```
+**Unzip the services.**
+- Inside `C:\studentCloudLabs\lab14`, unzip:
+  - `order-service.zip` → folder `order-service`
+  - `user-service.zip` → folder `user-service`
 
-**Open in IDE and update the `pom.xml` for the Producer (`order-service`).**  
-   - Open **IntelliJ IDEA** (or VS Code) → **File → Open…** → select `C:\studentCloudLabs\lab14\order-service`.  
-   - Wait for Maven/Gradle import to finish.  
-   - Add the following dependencies to `order-service/pom.xml`:
-   ```xml
-      <dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<scope>runtime</scope>
-			<optional>true</optional>
-		</dependency>
-   ```
+Result:
+```
+C:\studentCloudLabs
+└─ lab14
+   ├─ order-service
+   └─ user-service
+```
 
-**Open in IDE and update the `pom.xml` for the Producer (`user-service`).**  
-   - Open **IntelliJ IDEA** (or VS Code) → **File → Open…** → select `C:\studentCloudLabs\lab14\user-service`.  
-   - Wait for Maven/Gradle import to finish.  
-   - Add the following dependencies to `user-service/pom.xml`:
-   ```xml
-      <dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<scope>runtime</scope>
-			<optional>true</optional>
-		</dependency>
-   ```
-
-> 💡 Tip: In IntelliJ, press **Alt + F12** (or click **Terminal**) inside each project to run build/test commands once dependencies finish indexing.
+**Open & update `pom.xml` (optional devtools)**
+- In **IntelliJ IDEA** or VS Code, open **each project** and add to `pom.xml`:
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-devtools</artifactId>
+  <scope>runtime</scope>
+  <optional>true</optional>
+</dependency>
+```
+> 💡 Tip: In IntelliJ, press **Alt + F12** to open the Terminal in the project folder.
 
 ---
 
-## **GitHub CLI Setup — do this once**
+## **Git/GitHub Setup — Recommended Quick Path (Option A)**
+*Most students already authenticated Git in earlier labs. Use the simple Git commands below in the **VS Code Integrated Terminal** opened inside each service folder.*
 
-> We’ll install the GitHub CLI and authenticate so you never have to copy a token manually.
+### ✅ Option A — Simple Git Workflow (VS Code Terminal)
 
-| Step | What to do (PowerShell **Administrator**) | Expected Result |
-|------|-------------------------------------------|-----------------|
-| 1 | **Install GitHub CLI**<br>`winget install --id GitHub.cli` | *Successfully installed GitHub CLI* |
-| 2 | **Verify installation**<br>`gh --version` | Prints e.g. `gh version 2.51.0` |
-| 3 | **Authenticate**<br>`gh auth login` → choose **GitHub.com** → **HTTPS** → browser opens, sign in, click **Authorize** | Terminal shows `✓ Logged in as <your‑username>` |
+> Open the correct folder in VS Code, then **right‑click** the folder name (`user-service` or `order-service`) in Explorer → **Open in Integrated Terminal**.
+
+#### 1) Initialize and commit (first time only)
+**user-service**
+```powershell
+git init; git add .; git commit -m "Initial commit – user-service"
+```
+
+**order-service**
+```powershell
+git init; git add .; git commit -m "Initial commit – order-service"
+```
+
+#### 2) Connect to a remote and push
+Pick one path per service:
+
+- **If you already created an empty GitHub repo on the website:**
+  **user-service**
+  ```powershell
+  git remote add origin https://github.com/<your-username>/user-service.git; git branch -M main; git push -u origin main
+  ```
+  **order-service**
+  ```powershell
+  git remote add origin https://github.com/<your-username>/order-service.git; git branch -M main; git push -u origin main
+  ```
+
+- **If the remote is already set (you cloned earlier):**
+  ```powershell
+  git remote -v
+  ```
+  Then push:
+  ```powershell
+  git push -u origin main
+  ```
+
+#### 3) Ongoing updates
+Run inside the changed service folder:
+```powershell
+git add .; git commit -m "Describe your change"; git push
+```
+
+**Troubleshooting**
+- Check identity: `git config --global user.name` and `git config --global user.email`
+- If `origin` exists but wrong URL:
+```powershell
+git remote set-url origin https://github.com/<your-username>/<repo-name>.git
+```
 
 ---
 
-9. **Push services to GitHub.**
+## **(Optional) Option B — GitHub CLI (gh)**
+Use this if you prefer to create repos from the terminal. **Optional**.
 
-### **Create & push each microservice repo**
+**Install & login (PowerShell as Administrator)**
+```powershell
+winget install --id GitHub.cli
+gh --version
+gh auth login
+```
+Follow prompts: **GitHub.com** → **HTTPS** → browser sign‑in → **Authorize**.
 
-#### GitHub CLI — `user-service`
+**Create & push (run inside each folder)**
 
-| Step | What to do | Expected Result |
-|------|------------|-----------------|
-| A | **Create the repo with a README**<br>`gh repo create user-service --public --add-readme --confirm` | Repo URL printed; remote **user-service** repo created |
-| B | **Commit & push**<br>`git add .`<br>`git commit -m "Initial commit – user-service"`<br>`git push -u origin main` | Push completes; branch **main** on GitHub |
+`user-service`
+```powershell
+gh repo create user-service --public --add-readme --confirm; git add .; git commit -m "Initial commit – user-service"; git branch -M main; git push -u origin main
+```
 
-#### GitHub CLI — `order-service`
+`order-service`
+```powershell
+gh repo create order-service --public --add-readme --confirm; git add .; git commit -m "Initial commit – order-service"; git branch -M main; git push -u origin main
+```
 
-| Step | What to do | Expected Result |
-|------|------------|-----------------|
-| A | **Create the repo with a README**<br>`gh repo create order-service --public --add-readme --confirm` | Repo URL printed; remote **order-service** repo created |
-| B | **Commit & push**<br>`git add .`<br>`git commit -m "Initial commit – order-service"`<br>`git push -u origin main` | Push completes; branch **main** on GitHub |
+---
 
-10. **Verify `pom.xml` contains Surefire plugin.**
-📄 `user-service/pom.xml` and `order-service/pom.xml`:
+### **Verify Maven Surefire Plugin**
+Ensure both services include (or are managed to include) the Surefire plugin so tests run in CI:
 ```xml
 <build>
-    <plugins>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>3.0.0</version>
-        </plugin>
-    </plugins>
+  <plugins>
+    <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-surefire-plugin</artifactId>
+      <version>3.0.0</version>
+    </plugin>
+  </plugins>
 </build>
 ```
-💡 Note: Do not manually add versions for Spring Boot dependencies. Use Spring Initializr's managed versions.
+> 💡 Spring Boot manages most dependency versions—avoid pinning versions unnecessarily.
 
 ---
 
-### **Part 3: Configuring Jenkins for CI**
+## **Part 3: Configure Jenkins (Freestyle Jobs)**
 
-11. **Create a Jenkins job for `user-service`.**
-    - From the Jenkins dashboard, click **New Item**.
-    - Name it `user-service-CI`, choose **Freestyle project**, and click **OK**.
+1) **Create job for `user-service`.**  
+   - Jenkins dashboard → **New Item** → Name: `user-service-CI` → **Freestyle project** → **OK**.
 
-12. **Set up the Git repository in Jenkins.**
-    - Under **Source Code Management**, select **Git**.
-    - Under **Branch Specifier**, Enter exactly ***/main**
-    - Enter the GitHub repository URL for `user-service`.
+2) **Set Git repository.**  
+   - **Source Code Management** → **Git** → Repository URL: *(your `user-service` repo URL)*  
+   - **Branch Specifier**: `*/main`
 
-13. **Add a Maven build step.**
-    - In the **Build** section, add **Invoke top-level Maven targets**.
-    - Goals:
-      ```
-      clean install
-      ```
+3) **Add Maven build step.**  
+   - **Build** → **Invoke top-level Maven targets** → Goals:
+     ```
+     clean install
+     ```
 
-14. **Save and run the job.**
-    - Click **Build Now**.
-    - ✅ Expected output:
-      ```
-      BUILD SUCCESS
-      ```
+4) **Build.**  
+   - Click **Build Now** → expect `BUILD SUCCESS`.
 
-15. **Repeat for `order-service`.**
-    - Name it `order-service-CI`.
+5) **Repeat for `order-service`** with job name `order-service-CI`.
 
 ---
 
-### **Part 4: Creating a Jenkins Pipeline**
+## **Part 4: Jenkins Pipeline (Build Both Services)**
 
-16. **Install the Pipeline plugin if not installed.**
-    - Go to **Manage Jenkins** → **Manage Plugins**.
-    - Search for and install **Pipeline**.
+1) **Install Pipeline plugin (if missing).**  
+   - **Manage Jenkins** → **Manage Plugins** → install **Pipeline**.
 
-17. **Create a pipeline job.**
-    - Dashboard → **New Item** → Name: `Microservices-CI-Pipeline` → Select **Pipeline** → Click **OK**.
+2) **Create a pipeline job.**  
+   - **New Item** → Name: `Microservices-CI-Pipeline` → **Pipeline** → **OK**.
 
-18. **Add the pipeline script.**
-    - Under **Pipeline** → **Pipeline script**:
+3) **Pipeline script** (replace URLs with your repos):
 ```groovy
 pipeline {
     agent any
@@ -196,7 +222,7 @@ pipeline {
         stage('Build user-service') {
             steps {
                 script {
-                    git branch:'main', url: '<user-service Git URL>'
+                    git branch: 'main', url: '<user-service Git URL>'
                     dir('user-service') {
                         bat 'mvn clean install'
                     }
@@ -206,7 +232,7 @@ pipeline {
         stage('Build order-service') {
             steps {
                 script {
-                    git branch:'main', url: '<order-service Git URL>'
+                    git branch: 'main', url: '<order-service Git URL>'
                     dir('order-service') {
                         bat 'mvn clean install'
                     }
@@ -217,26 +243,21 @@ pipeline {
 }
 ```
 
-19. **Run the pipeline.**
-    - Click **Build Now**.
-    - ✅ Expected output:
-      ```
-      BUILD SUCCESS
-      ```
+4) **Run the pipeline.**  
+   - Click **Build Now** → expect `BUILD SUCCESS`.
 
 ---
 
-### **Part 5: Deployment (Optional)**
-
-20. **Configure webhook triggers.**
-    - In your GitHub repository → **Settings** → **Webhooks** → Add URL to Jenkins webhook endpoint.
+## **Part 5: (Optional) Webhook Triggers**
+In each GitHub repo: **Settings** → **Webhooks** → add your Jenkins endpoint to trigger builds on push.
 
 ---
 
 ## **Conclusion**
 You have:
 - Installed Jenkins on **Windows**
+- Pushed both microservices to GitHub (simple Git or optional GitHub CLI)
 - Created Freestyle and Pipeline jobs
-- Automated build and optional deployment of two Spring Boot microservices
+- Automated builds and optional deployment hooks
 
 🎉 Your first CI pipeline is now live!

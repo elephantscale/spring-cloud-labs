@@ -56,57 +56,57 @@ Learn how to install and configure **Jenkins** to automate the build, testing, a
 ## Part 2: Setting Up the Microservices (`order-service` & `user-service`)
 
 **Create projects.**  
-   Make sure you have extracted the starter files for **Lab 14**.
-   - 📂 Place **studentCloud.zip** in `C:\` and **Extract All`.  
-   - 📂 Create folder `C:\studentCloudLabs`.  
-   - 📋 Copy **lab14** from `C:\studentCloud\starters` → paste into `C:\studentCloudLabs`.
+Make sure you have extracted the starter files for **Lab 14**.
+- 📂 Place **studentCloud.zip** in `C:\` and **Extract All`.  
+- 📂 Create folder `C:\studentCloudLabs`.  
+- 📋 Copy **lab14** from `C:\studentCloud\starters` → paste into `C:\studentCloudLabs`.
 
-   Once Lab 14 is copied, unzip the service folders:
-   - 🗂️ Inside `lab14`, unzip service files (e.g., `order-service.zip` → `order-service`, `user-service.zip` → `user-service`).  
-   - ✅ Verify structure, e.g.:  
-     ```
-     C:\studentCloudLabs
-       └─ lab14
-           ├─ order-service
-           └─ user-service
-     ```
+Once Lab 14 is copied, unzip the service folders:
+- 🗂️ Inside `lab14`, unzip service files (e.g., `order-service.zip` → `order-service`, `user-service.zip` → `user-service`).  
+- ✅ Verify structure, e.g.:  
+  ```
+  C:\studentCloudLabs
+    └─ lab14
+        ├─ order-service
+        └─ user-service
+  ```
 
-**Open in IDE and update the `pom.xml` for the Producer (`order-service`).**  
-   - Open **IntelliJ IDEA** (or VS Code) → **File → Open…** → select `C:\studentCloudLabs\lab14\order-service`.  
-   - Wait for Maven/Gradle import to finish.  
-   - Add the following dependencies to `order-service/pom.xml`:
-   ```xml
-      <dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<scope>runtime</scope>
-			<optional>true</optional>
-		</dependency>
-   ```
+**Open in IntelliJ and update the `pom.xml` for the Producer (`order-service`).**  
+- Open **IntelliJ IDEA** → **File → Open…** → select `C:\studentCloudLabs\lab14\order-service`.  
+- Wait for Maven import to finish (lower‑right status bar).  
+- Add the following dependency to `order-service/pom.xml`:
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-devtools</artifactId>
+  <scope>runtime</scope>
+  <optional>true</optional>
+</dependency>
+```
 
-**Open in IDE and update the `pom.xml` for the Producer (`user-service`).**  
-   - Open **IntelliJ IDEA** (or VS Code) → **File → Open…** → select `C:\studentCloudLabs\lab14\user-service`.  
-   - Wait for Maven/Gradle import to finish.  
-   - Add the following dependencies to `user-service/pom.xml`:
-   ```xml
-      <dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<scope>runtime</scope>
-			<optional>true</optional>
-		</dependency>
-   ```
+**Open in IntelliJ and update the `pom.xml` for the Producer (`user-service`).**  
+- Open **File → Open…** → select `C:\studentCloudLabs\lab14\user-service`.  
+- Wait for Maven import to finish.  
+- Add the following dependency to `user-service/pom.xml`:
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-devtools</artifactId>
+  <scope>runtime</scope>
+  <optional>true</optional>
+</dependency>
+```
 
-> 💡 Tip: In IntelliJ, press **Alt + F12** (or click **Terminal**) inside each project to run build/test commands once dependencies finish indexing.
+> 💡 Tip: In IntelliJ, open **Terminal** via **View → Tool Windows → Terminal** (or **Alt+F12**) inside each project to run build/test and Git commands.
 
 ---
 
 ## **Git/GitHub Setup — Recommended Quick Path (Option A)**
-*Most students already authenticated Git in earlier labs. Use the simple Git commands below in the **VS Code Integrated Terminal** opened inside each service folder.*
+*Most students already authenticated Git in earlier labs. Use the simple Git commands below in the **IntelliJ Terminal** opened inside each service folder.*
 
-### ✅ Option A — Simple Git Workflow (VS Code Terminal)
+### ✅ Option A — Simple Git Workflow (IntelliJ Terminal)
 
-> Open the correct folder in VS Code, then **right‑click** the folder name (`user-service` or `order-service`) in Explorer → **Open in Integrated Terminal**.
+> In IntelliJ’s **Project** tool window, **right‑click** the folder (`user-service` or `order-service`) → **Open in Terminal**.
 
 #### 1) Initialize and commit (first time only)
 **user-service**
@@ -154,10 +154,12 @@ git add .; git commit -m "Describe your change"; git push
 git remote set-url origin https://github.com/<your-username>/<repo-name>.git
 ```
 
+> 🔍 Prefer GUI? You can also use IntelliJ’s VCS actions: **VCS → Enable Version Control Integration… (Git)**, **Commit** (**Ctrl+K**), then **Push** (**Ctrl+Shift+K**).
+
 ---
 
 ## **(Optional) Option B — GitHub CLI (gh)**
-Use this if you have not autenticared with GitHub before and would prefer to use Powershell instead of the VS Code Terminal. **Optional**.
+Use this if you haven’t authenticated GitHub before and prefer CLI automation. **Optional** (run in the IntelliJ Terminal or PowerShell).
 
 **Install & login (PowerShell as Administrator)**
 ```powershell
@@ -270,7 +272,7 @@ In each GitHub repo: **Settings** → **Webhooks** → add your Jenkins endpoint
 ## **Conclusion**
 You have:
 - Installed Jenkins on **Windows**
-- Pushed both microservices to GitHub (simple Git or optional GitHub CLI)
+- Pushed both microservices to GitHub (simple Git or optional GitHub CLI via IntelliJ Terminal)
 - Created Freestyle and Pipeline jobs
 - Automated builds and optional deployment hooks
 
